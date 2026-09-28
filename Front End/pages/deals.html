@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>DealMind — Deals</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet"
+    >
+
+    <link rel="stylesheet" href="../assets/CSS/deals.css">
+    <link rel="stylesheet" href="../assets/CSS/theme.css">
+</head>
+
+<body>
+
+<div class="app">
+
+    <!-- =========================
+         SIDEBAR
+    ========================== -->
+
+    <aside class="sidebar">
+
+        <div class="logo">
+            <div class="logo-icon">✦</div>
+            <h1>DealMind</h1>
+        </div>
+
+        <div class="nav-section">
+
+            <div class="nav-label">
+                Workspace
+            </div>
+
+            <button class="nav-item" data-page="dashboard">
+                <span class="nav-icon">⌂</span>
+                <span>Dashboard</span>
+            </button>
+
+            <button class="nav-item active" data-page="deals">
+                <span class="nav-icon">▣</span>
+                <span>Deals</span>
+            </button>
+
+            <button class="nav-item" data-page="memory">
+                <span class="nav-icon">◈</span>
+                <span>Deal Memory</span>
+            </button>
+
+            <button class="nav-item" data-page="copilot">
+                <span class="nav-icon">✦</span>
+                <span>AI Copilot</span>
+            </button>
+
+            <button class="nav-item" data-page="learning">
+                <span class="nav-icon">↗</span>
+                <span>Learning</span>
+            </button>
+
+        </div>
+
+        <div class="sidebar-bottom">
+
+            <button class="nav-item" data-page="settings">
+                <span class="nav-icon">⚙</span>
+                <span>Settings</span>
+            </button>
+
+            <button
+                class="theme-toggle"
+                id="themeToggle"
+                aria-label="Toggle theme"
+            >
+                <span id="themeText">Dark mode</span>
+
+                <div class="theme-switch"></div>
+            </button>
+
+        </div>
+
+    </aside>
+
+
+    <!-- =========================
+         MAIN
+    ========================== -->
+
+    <main class="main">
+
+        <!-- TOP BAR -->
+
+        <header class="topbar">
+
+            <div>
+
+                <div class="breadcrumb">
+                    Workspace <span>›</span> Deals
+                </div>
+
+                <h2>Deals</h2>
+
+                <p>
+                    Track every opportunity and the intelligence behind it.
+                </p>
+
+            </div>
+
+
+            <div class="profile">
+
+                <button class="notification">
+                    ♧
+                </button>
+
+                <div class="avatar">
+                    SA
+                </div>
+
+            </div>
+
+        </header>
+
+
+        <!-- =========================
+             DEAL SUMMARY
+        ========================== -->
+
+        <section class="summary-grid">
+
+            <div class="summary-card">
+
+                <div class="summary-icon">
+                    ◇
+                </div>
+
+                <div>
+
+                    <span>
+                        Total Pipeline
+                    </span>
+
+                    <strong>
+                        $480K
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <div class="summary-card">
+
+                <div class="summary-icon">
+                    ▣
+                </div>
+
+                <div>
+
+                    <span>
+                        Active Deals
+                    </span>
+
+                    <strong>
+                        12
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <div class="summary-card">
+
+                <div class="summary-icon">
+                    !
+                </div>
+
+                <div>
+
+                    <span>
+                        At Risk
+                    </span>
+
+                    <strong>
+                        3
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <div class="summary-card">
+
+                <div class="summary-icon">
+                    ✓
+                </div>
+
+                <div>
+
+                    <span>
+                        Closing Soon
+                    </span>
+
+                    <strong>
+                        4
+                    </strong>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             DEALS SECTION
+        ========================== -->
+
+        <section class="deals-section">
+
+            <!-- TOOLBAR -->
+
+            <div class="deals-toolbar">
+
+                <div class="search-box">
+
+                    <span>⌕</span>
+
+                    <input
+                        type="text"
+                        id="dealSearch"
+                        placeholder="Search company, competitor, stakeholder..."
+                    >
+
+                </div>
+
+
+                <div class="filters">
+
+                    <button
+                        class="filter-button active"
+                        data-filter="all"
+                    >
+                        All
+                    </button>
+
+                    <button
+                        class="filter-button"
+                        data-filter="negotiation"
+                    >
+                        Negotiation
+                    </button>
+
+                    <button
+                        class="filter-button"
+                        data-filter="proposal"
+                    >
+                        Proposal
+                    </button>
+
+                    <button
+                        class="filter-button"
+                        data-filter="risk"
+                    >
+                        At Risk
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <!-- DEAL TABLE -->
+
+            <div class="deal-table">
+
+                <!-- TABLE HEADER -->
+
+                <div class="table-header">
+
+                    <div>
+                        Deal
+                    </div>
+
+                    <div>
+                        Value
+                    </div>
+
+                    <div>
+                        Stage
+                    </div>
+
+                    <div>
+                        Risk
+                    </div>
+
+                    <div>
+                        Competitor
+                    </div>
+
+                    <div>
+                        Last Activity
+                    </div>
+
+                    <div>
+                    </div>
+
+                </div>
+
+
+                <!-- TECHNOVA -->
+
+                <div
+                    class="deal-row"
+                    data-stage="negotiation"
+                    data-risk="medium"
+                    data-search="technova enterprise crm salesforce implementation"
+                >
+
+                    <div class="deal-company">
+
+                        <div class="company-logo">
+                            TN
+                        </div>
+
+                        <div>
+
+                            <strong>
+                                TechNova
+                            </strong>
+
+                            <span>
+                                Enterprise CRM
+                            </span>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="value">
+                        $120K
+                    </div>
+
+
+                    <div>
+
+                        <span class="stage-badge negotiation">
+                            Negotiation
+                        </span>
+
+                    </div>
+
+
+                    <div>
+
+                        <span class="risk-badge medium">
+                            <i></i>
+                            Medium
+                        </span>
+
+                    </div>
+
+
+                    <div class="competitor">
+                        Salesforce
+                    </div>
+
+
+                    <div class="activity">
+                        2 hours ago
+                    </div>
+
+
+                    <button
+                        class="view-button"
+                        data-deal="TechNova"
+                    >
+                        View →
+                    </button>
+
+                </div>
+
+
+                <!-- ACME -->
+
+                <div
+                    class="deal-row"
+                    data-stage="proposal"
+                    data-risk="low"
+                    data-search="acme corp business platform hubspot pricing"
+                >
+
+                    <div class="deal-company">
+
+                        <div class="company-logo">
+                            AC
+                        </div>
+
+                        <div>
+
+                            <strong>
+                                Acme Corp
+                            </strong>
+
+                            <span>
+                                Business Platform
+                            </span>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="value">
+                        $85K
+                    </div>
+
+
+                    <div>
+
+                        <span class="stage-badge proposal">
+                            Proposal
+                        </span>
+
+                    </div>
+
+
+                    <div>
+
+                        <span class="risk-badge low">
+                            <i></i>
+                            Low
+                        </span>
+
+                    </div>
+
+
+                    <div class="competitor">
+                        HubSpot
+                    </div>
+
+
+                    <div class="activity">
+                        Yesterday
+                    </div>
+
+
+                    <button
+                        class="view-button"
+                        data-deal="Acme Corp"
+                    >
+                        View →
+                    </button>
+
+                </div>
+
+
+                <!-- NOVA -->
+
+                <div
+                    class="deal-row"
+                    data-stage="negotiation"
+                    data-risk="high"
+                    data-search="nova systems ai infrastructure oracle implementation"
+                >
+
+                    <div class="deal-company">
+
+                        <div class="company-logo">
+                            NS
+                        </div>
+
+                        <div>
+
+                            <strong>
+                                Nova Systems
+                            </strong>
+
+                            <span>
+                                AI Infrastructure
+                            </span>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="value">
+                        $210K
+                    </div>
+
+
+                    <div>
+
+                        <span class="stage-badge negotiation">
+                            Negotiation
+                        </span>
+
+                    </div>
+
+
+                    <div>
+
+                        <span class="risk-badge high">
+                            <i></i>
+                            High
+                        </span>
+
+                    </div>
+
+
+                    <div class="competitor">
+                        Oracle
+                    </div>
+
+
+                    <div class="activity">
+                        2 days ago
+                    </div>
+
+
+                    <button
+                        class="view-button"
+                        data-deal="Nova Systems"
+                    >
+                        View →
+                    </button>
+
+                </div>
+
+
+                <!-- GLOBALLINK -->
+
+                <div
+                    class="deal-row"
+                    data-stage="discovery"
+                    data-risk="low"
+                    data-search="globallink sales automation microsoft"
+                >
+
+                    <div class="deal-company">
+
+                        <div class="company-logo">
+                            GL
+                        </div>
+
+                        <div>
+
+                            <strong>
+                                GlobalLink
+                            </strong>
+
+                            <span>
+                                Sales Automation
+                            </span>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="value">
+                        $65K
+                    </div>
+
+
+                    <div>
+
+                        <span class="stage-badge discovery">
+                            Discovery
+                        </span>
+
+                    </div>
+
+
+                    <div>
+
+                        <span class="risk-badge low">
+                            <i></i>
+                            Low
+                        </span>
+
+                    </div>
+
+
+                    <div class="competitor">
+                        Microsoft
+                    </div>
+
+
+                    <div class="activity">
+                        3 days ago
+                    </div>
+
+
+                    <button
+                        class="view-button"
+                        data-deal="GlobalLink"
+                    >
+                        View →
+                    </button>
+
+                </div>
+
+
+                <!-- VERTEX -->
+
+                <div
+                    class="deal-row"
+                    data-stage="proposal"
+                    data-risk="medium"
+                    data-search="vertex labs analytics hubspot integration"
+                >
+
+                    <div class="deal-company">
+
+                        <div class="company-logo">
+                            VL
+                        </div>
+
+                        <div>
+
+                            <strong>
+                                Vertex Labs
+                            </strong>
+
+                            <span>
+                                Analytics Suite
+                            </span>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="value">
+                        $145K
+                    </div>
+
+
+                    <div>
+
+                        <span class="stage-badge proposal">
+                            Proposal
+                        </span>
+
+                    </div>
+
+
+                    <div>
+
+                        <span class="risk-badge medium">
+                            <i></i>
+                            Medium
+                        </span>
+
+                    </div>
+
+
+                    <div class="competitor">
+                        HubSpot
+                    </div>
+
+
+                    <div class="activity">
+                        4 days ago
+                    </div>
+
+
+                    <button
+                        class="view-button"
+                        data-deal="Vertex Labs"
+                    >
+                        View →
+                    </button>
+
+                </div>
+
+
+                <!-- QUANTUM -->
+
+                <div
+                    class="deal-row"
+                    data-stage="negotiation"
+                    data-risk="high"
+                    data-search="quantum systems cloud platform aws"
+                >
+
+                    <div class="deal-company">
+
+                        <div class="company-logo">
+                            QS
+                        </div>
+
+                        <div>
+
+                            <strong>
+                                Quantum Systems
+                            </strong>
+
+                            <span>
+                                Cloud Platform
+                            </span>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="value">
+                        $180K
+                    </div>
+
+
+                    <div>
+
+                        <span class="stage-badge negotiation">
+                            Negotiation
+                        </span>
+
+                    </div>
+
+
+                    <div>
+
+                        <span class="risk-badge high">
+                            <i></i>
+                            High
+                        </span>
+
+                    </div>
+
+
+                    <div class="competitor">
+                        AWS
+                    </div>
+
+
+                    <div class="activity">
+                        5 days ago
+                    </div>
+
+
+                    <button
+                        class="view-button"
+                        data-deal="Quantum Systems"
+                    >
+                        View →
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <!-- EMPTY STATE -->
+
+            <div
+                class="empty-state"
+                id="emptyState"
+            >
+                <div class="empty-icon">
+                    ⌕
+                </div>
+
+                <h3>
+                    No deals found
+                </h3>
+
+                <p>
+                    Try changing your search or filter.
+                </p>
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             AI DEAL INSIGHT
+        ========================== -->
+
+        <section class="ai-insight">
+
+            <div class="ai-symbol">
+                ✦
+            </div>
+
+            <div class="ai-content">
+
+                <span>
+                    AI DEAL INSIGHT
+                </span>
+
+                <h3>
+                    3 deals may need attention.
+                </h3>
+
+                <p>
+                    TechNova, Nova Systems, and Quantum Systems
+                    have recent risk signals based on their
+                    conversation history.
+                </p>
+
+            </div>
+
+            <button id="analyzeButton">
+                Analyze Risks →
+            </button>
+
+        </section>
+
+    </main>
+
+</div>
+
+
+<!-- DEAL MODAL -->
+
+<div
+    class="modal-overlay"
+    id="dealModal"
+>
+
+    <div class="deal-modal">
+
+        <button
+            class="modal-close"
+            id="modalClose"
+        >
+            ×
+        </button>
+
+        <div class="modal-label">
+            DEAL INTELLIGENCE
+        </div>
+
+        <h2 id="modalDealName">
+            TechNova
+        </h2>
+
+        <p id="modalDealDescription">
+            Enterprise CRM
+        </p>
+
+        <div class="modal-grid">
+
+            <div>
+                <span>Deal Value</span>
+                <strong id="modalValue">$120K</strong>
+            </div>
+
+            <div>
+                <span>Stage</span>
+                <strong id="modalStage">Negotiation</strong>
+            </div>
+
+            <div>
+                <span>Risk</span>
+                <strong id="modalRisk">Medium</strong>
+            </div>
+
+            <div>
+                <span>Competitor</span>
+                <strong id="modalCompetitor">Salesforce</strong>
+            </div>
+
+        </div>
+
+        <div class="modal-memory">
+
+            <span>
+                ✦ Recent memory
+            </span>
+
+            <p id="modalMemory">
+                CTO raised implementation concerns during
+                the previous conversation.
+            </p>
+
+        </div>
+
+        <button class="modal-primary">
+            Open Deal Intelligence →
+        </button>
+
+    </div>
+
+</div>
+
+
+<script src="../assets/JS/theme.js"></script>
+<script src="../assets/JS/deals.js"></script>
+
+</body>
+</html>

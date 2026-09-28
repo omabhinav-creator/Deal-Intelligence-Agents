@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>DealMind — AI Copilot</title>
+
+  <link rel="stylesheet" href="../assets/CSS/aicopilot.css" />
+  <link rel="stylesheet" href="../assets/CSS/theme.css" />
+
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+  />
+</head>
+
+<body>
+
+  <!-- ================================
+       SIDEBAR
+       ================================ -->
+
+  <aside class="sidebar">
+
+    <div class="logo">
+      <div class="logo-icon">
+        <i class="fa-solid fa-brain"></i>
+      </div>
+
+      <span>DealMind</span>
+    </div>
+
+
+    <nav class="nav-menu">
+
+      <a href="dashboard.html">
+        <i class="fa-solid fa-house"></i>
+        <span>Dashboard</span>
+      </a>
+
+      <a href="deals.html">
+        <i class="fa-solid fa-briefcase"></i>
+        <span>Deals</span>
+      </a>
+
+      <a href="dealmemory.html">
+        <i class="fa-solid fa-brain"></i>
+        <span>Deal Memory</span>
+      </a>
+
+      <a href="aicopilot.html" class="active">
+        <i class="fa-solid fa-wand-magic-sparkles"></i>
+        <span>AI Copilot</span>
+      </a>
+
+      <a href="learning.html">
+        <i class="fa-solid fa-chart-line"></i>
+        <span>Learning</span>
+      </a>
+
+    </nav>
+
+
+    <div class="sidebar-bottom">
+
+      <div class="user-profile">
+
+        <div class="avatar">
+          SS
+        </div>
+
+        <div>
+          <strong>Sahasra</strong>
+          <span>Sales Manager</span>
+        </div>
+
+      </div>
+
+    </div>
+
+  </aside>
+
+
+
+  <!-- ================================
+       MAIN CONTENT
+       ================================ -->
+
+  <main class="main-content">
+
+
+    <!-- TOPBAR -->
+
+    <header class="topbar">
+
+      <div>
+
+        <h1>AI Copilot</h1>
+
+        <p>
+          Your intelligent assistant for every deal conversation.
+        </p>
+
+      </div>
+
+
+      <div class="topbar-actions">
+
+        <button
+          class="icon-btn"
+          id="themeToggle"
+          title="Toggle theme"
+        >
+          <i class="fa-solid fa-moon"></i>
+        </button>
+
+        <div class="notification">
+
+          <i class="fa-regular fa-bell"></i>
+
+          <span></span>
+
+        </div>
+
+      </div>
+
+    </header>
+
+
+
+    <!-- ================================
+         DEAL SELECTOR
+         ================================ -->
+
+    <section class="deal-selector-card">
+
+      <div class="selector-left">
+
+        <div class="company-logo">
+          TN
+        </div>
+
+        <div>
+
+          <span class="selector-label">
+            Working with
+          </span>
+
+          <h2>TechNova</h2>
+
+          <div class="deal-meta">
+
+            <span>
+              <i class="fa-solid fa-dollar-sign"></i>
+              $120K
+            </span>
+
+            <span>
+              <i class="fa-solid fa-arrow-trend-up"></i>
+              Negotiation
+            </span>
+
+            <span class="medium-risk">
+              <i class="fa-solid fa-circle"></i>
+              Medium Risk
+            </span>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <button class="change-deal-btn" id="changeDealBtn">
+
+        <i class="fa-solid fa-repeat"></i>
+
+        Change Deal
+
+      </button>
+
+    </section>
+
+
+
+    <!-- ================================
+         COPILOT GRID
+         ================================ -->
+
+    <section class="copilot-layout">
+
+
+      <!-- ================================
+           LEFT — AI CHAT
+           ================================ -->
+
+      <div class="copilot-chat-card">
+
+        <div class="chat-header">
+
+          <div class="ai-avatar">
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+          </div>
+
+          <div>
+
+            <h3>DealMind Copilot</h3>
+
+            <p>
+              Ask anything about TechNova
+            </p>
+
+          </div>
+
+          <span class="online-dot">
+            <i class="fa-solid fa-circle"></i>
+            Online
+          </span>
+
+        </div>
+
+
+        <!-- CHAT AREA -->
+
+        <div class="chat-area" id="chatArea">
+
+          <div class="message ai-message">
+
+            <div class="message-avatar">
+              <i class="fa-solid fa-brain"></i>
+            </div>
+
+            <div class="message-content">
+
+              <span class="message-name">
+                DealMind
+              </span>
+
+              <p>
+                Hey! I've reviewed the memory of your
+                TechNova deal. I can help you understand
+                what changed, prepare for your next meeting,
+                or suggest the next best action.
+              </p>
+
+            </div>
+
+          </div>
+
+
+          <div class="quick-prompts">
+
+            <button class="prompt-btn" data-prompt="What changed?">
+
+              <i class="fa-solid fa-clock-rotate-left"></i>
+
+              What changed?
+
+            </button>
+
+
+            <button class="prompt-btn" data-prompt="What should I do next?">
+
+              <i class="fa-solid fa-arrow-right"></i>
+
+              Next Best Action
+
+            </button>
+
+
+            <button class="prompt-btn" data-prompt="Give me a deal brief">
+
+              <i class="fa-solid fa-file-lines"></i>
+
+              Deal Brief
+
+            </button>
+
+
+            <button class="prompt-btn" data-prompt="What are the main risks?">
+
+              <i class="fa-solid fa-triangle-exclamation"></i>
+
+              Main Risks
+
+            </button>
+
+          </div>
+
+        </div>
+
+
+        <!-- INPUT -->
+
+        <div class="chat-input-area">
+
+          <input
+            type="text"
+            id="chatInput"
+            placeholder="Ask about this deal..."
+            autocomplete="off"
+          />
+
+          <button id="sendBtn">
+
+            <i class="fa-solid fa-arrow-up"></i>
+
+          </button>
+
+        </div>
+
+        <div class="input-hint">
+
+          <i class="fa-solid fa-sparkles"></i>
+
+          AI responses are based on your deal memory.
+
+        </div>
+
+      </div>
+
+
+
+      <!-- ================================
+           RIGHT — AI ACTIONS
+           ================================ -->
+
+      <aside class="copilot-sidebar">
+
+
+        <!-- GENERATE BRIEF -->
+
+        <div class="action-card featured">
+
+          <div class="action-icon purple">
+
+            <i class="fa-solid fa-file-lines"></i>
+
+          </div>
+
+          <h3>Generate Deal Brief</h3>
+
+          <p>
+            Get a quick summary of the deal,
+            stakeholders, risks, objections,
+            and recent changes.
+          </p>
+
+          <button
+            class="action-btn primary"
+            id="generateBriefBtn"
+          >
+
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+
+            Generate Brief
+
+          </button>
+
+        </div>
+
+
+
+        <!-- WHAT CHANGED -->
+
+        <div class="action-card">
+
+          <div class="action-top">
+
+            <div class="action-icon pink">
+
+              <i class="fa-solid fa-clock-rotate-left"></i>
+
+            </div>
+
+            <span class="action-badge">
+              Recent
+            </span>
+
+          </div>
+
+          <h3>What Changed?</h3>
+
+          <p>
+            See the important changes since
+            your last interaction.
+          </p>
+
+          <button
+            class="text-action"
+            id="changedBtn"
+          >
+
+            View changes
+
+            <i class="fa-solid fa-arrow-right"></i>
+
+          </button>
+
+        </div>
+
+
+
+        <!-- NEXT BEST ACTION -->
+
+        <div class="action-card">
+
+          <div class="action-top">
+
+            <div class="action-icon beige">
+
+              <i class="fa-solid fa-bullseye"></i>
+
+            </div>
+
+            <span class="action-badge recommended">
+              Recommended
+            </span>
+
+          </div>
+
+          <h3>Next Best Action</h3>
+
+          <p>
+            Identify the most useful action
+            based on the current deal context.
+          </p>
+
+          <button
+            class="text-action"
+            id="nextActionBtn"
+          >
+
+            Get recommendation
+
+            <i class="fa-solid fa-arrow-right"></i>
+
+          </button>
+
+        </div>
+
+
+
+        <!-- WHY -->
+
+        <div class="why-card">
+
+          <div class="why-header">
+
+            <i class="fa-solid fa-circle-info"></i>
+
+            <h3>Why this recommendation?</h3>
+
+          </div>
+
+          <p>
+            Based on TechNova's previous conversations,
+            implementation cost has been their most
+            consistent concern.
+          </p>
+
+          <div class="reason">
+
+            <i class="fa-solid fa-check"></i>
+
+            <span>
+              Customer responded positively to
+              phased implementation.
+            </span>
+
+          </div>
+
+          <div class="reason">
+
+            <i class="fa-solid fa-check"></i>
+
+            <span>
+              CTO is focused on integration effort.
+            </span>
+
+          </div>
+
+        </div>
+
+      </aside>
+
+    </section>
+
+
+
+    <!-- ================================
+         RECENT CONTEXT
+         ================================ -->
+
+    <section class="context-section">
+
+      <div class="section-header">
+
+        <div>
+
+          <h3>Recent Deal Context</h3>
+
+          <p>
+            Information the Copilot is using right now.
+          </p>
+
+        </div>
+
+        <a href="dealmemory.html" class="view-memory">
+          View full memory
+          <i class="fa-solid fa-arrow-right"></i>
+        </a>
+
+      </div>
+
+
+      <div class="context-grid">
+
+
+        <div class="context-card">
+
+          <div class="context-icon">
+
+            <i class="fa-solid fa-user"></i>
+
+          </div>
+
+          <div>
+
+            <span>Decision Maker</span>
+
+            <strong>Rahul Mehta</strong>
+
+            <small>CTO</small>
+
+          </div>
+
+        </div>
+
+
+        <div class="context-card">
+
+          <div class="context-icon">
+
+            <i class="fa-solid fa-building"></i>
+
+          </div>
+
+          <div>
+
+            <span>Competitor</span>
+
+            <strong>Salesforce</strong>
+
+            <small>Primary competitor</small>
+
+          </div>
+
+        </div>
+
+
+        <div class="context-card">
+
+          <div class="context-icon">
+
+            <i class="fa-solid fa-triangle-exclamation"></i>
+
+          </div>
+
+          <div>
+
+            <span>Main Objection</span>
+
+            <strong>Implementation Cost</strong>
+
+            <small>Repeated concern</small>
+
+          </div>
+
+        </div>
+
+
+        <div class="context-card">
+
+          <div class="context-icon">
+
+            <i class="fa-solid fa-lightbulb"></i>
+
+          </div>
+
+          <div>
+
+            <span>Winning Approach</span>
+
+            <strong>Phased Rollout</strong>
+
+            <small>Worked previously</small>
+
+          </div>
+
+        </div>
+
+
+      </div>
+
+    </section>
+
+  </main>
+
+
+  <script src="../assets/JS/theme.js"></script>
+  <script src="../assets/JS/aicopilot.js"></script>
+
+</body>
+</html>

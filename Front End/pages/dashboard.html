@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>DealMind — Dashboard</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet"
+    >
+
+    <link rel="stylesheet" href="../assets/CSS/dashboard.css">
+    <link rel="stylesheet" href="../assets/CSS/theme.css">
+</head>
+
+<body>
+
+<div class="app">
+
+    <!-- ==========================
+         SIDEBAR
+    =========================== -->
+
+    <aside class="sidebar">
+
+        <div class="logo">
+            <div class="logo-icon">✦</div>
+            <h1>DealMind</h1>
+        </div>
+
+        <div class="nav-section">
+
+            <div class="nav-label">
+                Workspace
+            </div>
+
+            <button class="nav-item active" data-page="dashboard">
+                <span class="nav-icon">⌂</span>
+                <span>Dashboard</span>
+            </button>
+
+            <button class="nav-item" data-page="deals">
+                <span class="nav-icon">▣</span>
+                <span>Deals</span>
+            </button>
+
+            <button class="nav-item" data-page="memory">
+                <span class="nav-icon">◈</span>
+                <span>Deal Memory</span>
+            </button>
+
+            <button class="nav-item" data-page="copilot">
+                <span class="nav-icon">✦</span>
+                <span>AI Copilot</span>
+            </button>
+
+            <button class="nav-item" data-page="learning">
+                <span class="nav-icon">↗</span>
+                <span>Learning</span>
+            </button>
+
+        </div>
+
+        <div class="sidebar-bottom">
+
+            <button class="nav-item" data-page="settings">
+                <span class="nav-icon">⚙</span>
+                <span>Settings</span>
+            </button>
+
+            <button
+                class="theme-toggle"
+                id="themeToggle"
+                aria-label="Toggle dark mode"
+            >
+                <span id="themeText">Dark mode</span>
+                <div class="theme-switch"></div>
+            </button>
+
+        </div>
+
+    </aside>
+
+
+    <!-- ==========================
+         MAIN CONTENT
+    =========================== -->
+
+    <main class="main">
+
+        <!-- TOP BAR -->
+
+        <header class="topbar">
+
+            <div class="greeting">
+                <h2>Good morning 👋</h2>
+
+                <p>
+                    Here's what needs your attention today.
+                </p>
+            </div>
+
+            <div class="profile">
+
+                <button class="notification" aria-label="Notifications">
+                    ♧
+                </button>
+
+                <div class="avatar">
+                    SA
+                </div>
+
+            </div>
+
+        </header>
+
+
+        <!-- ==========================
+             METRICS
+        =========================== -->
+
+        <section class="metrics">
+
+            <div class="metric-card">
+
+                <div class="metric-top">
+
+                    <span class="metric-label">
+                        Active Deals
+                    </span>
+
+                    <div class="metric-icon">
+                        ◇
+                    </div>
+
+                </div>
+
+                <div class="metric-value">
+                    12
+                </div>
+
+                <div class="metric-sub">
+                    8% more than last month
+                </div>
+
+            </div>
+
+
+            <div class="metric-card">
+
+                <div class="metric-top">
+
+                    <span class="metric-label">
+                        At-Risk Deals
+                    </span>
+
+                    <div class="metric-icon">
+                        !
+                    </div>
+
+                </div>
+
+                <div class="metric-value">
+                    3
+                </div>
+
+                <div class="metric-sub">
+                    Need attention this week
+                </div>
+
+            </div>
+
+
+            <div class="metric-card">
+
+                <div class="metric-top">
+
+                    <span class="metric-label">
+                        Upcoming Meetings
+                    </span>
+
+                    <div class="metric-icon">
+                        ◷
+                    </div>
+
+                </div>
+
+                <div class="metric-value">
+                    4
+                </div>
+
+                <div class="metric-sub">
+                    Next: TechNova in 2h
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ==========================
+             MAIN GRID
+        =========================== -->
+
+        <section class="content-grid">
+
+
+            <!-- MY DEALS -->
+
+            <div class="section-card">
+
+                <div class="section-header">
+
+                    <div class="section-title">
+                        My Deals
+                    </div>
+
+                    <button class="section-link" data-page="deals">
+                        View all →
+                    </button>
+
+                </div>
+
+
+                <!-- DEAL 1 -->
+
+                <div class="deal">
+
+                    <div class="deal-name">
+
+                        <div class="company-logo">
+                            TN
+                        </div>
+
+                        <div class="company-info">
+
+                            <strong>
+                                TechNova
+                            </strong>
+
+                            <span>
+                                Enterprise CRM
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                    <div class="deal-value">
+                        $120K
+                    </div>
+
+                    <div class="stage">
+                        Negotiation
+                    </div>
+
+                    <div class="risk risk-medium">
+
+                        <span class="risk-dot"></span>
+
+                        Medium
+
+                    </div>
+
+                </div>
+
+
+                <!-- DEAL 2 -->
+
+                <div class="deal">
+
+                    <div class="deal-name">
+
+                        <div class="company-logo">
+                            AC
+                        </div>
+
+                        <div class="company-info">
+
+                            <strong>
+                                Acme Corp
+                            </strong>
+
+                            <span>
+                                Business Platform
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                    <div class="deal-value">
+                        $85K
+                    </div>
+
+                    <div class="stage">
+                        Proposal
+                    </div>
+
+                    <div class="risk risk-low">
+
+                        <span class="risk-dot"></span>
+
+                        Low
+
+                    </div>
+
+                </div>
+
+
+                <!-- DEAL 3 -->
+
+                <div class="deal">
+
+                    <div class="deal-name">
+
+                        <div class="company-logo">
+                            NS
+                        </div>
+
+                        <div class="company-info">
+
+                            <strong>
+                                Nova Systems
+                            </strong>
+
+                            <span>
+                                AI Infrastructure
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                    <div class="deal-value">
+                        $210K
+                    </div>
+
+                    <div class="stage">
+                        Negotiation
+                    </div>
+
+                    <div class="risk risk-high">
+
+                        <span class="risk-dot"></span>
+
+                        High
+
+                    </div>
+
+                </div>
+
+
+                <!-- DEAL 4 -->
+
+                <div class="deal">
+
+                    <div class="deal-name">
+
+                        <div class="company-logo">
+                            GL
+                        </div>
+
+                        <div class="company-info">
+
+                            <strong>
+                                GlobalLink
+                            </strong>
+
+                            <span>
+                                Sales Automation
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                    <div class="deal-value">
+                        $65K
+                    </div>
+
+                    <div class="stage">
+                        Discovery
+                    </div>
+
+                    <div class="risk risk-low">
+
+                        <span class="risk-dot"></span>
+
+                        Low
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- RECENT MEMORIES -->
+
+            <div class="section-card">
+
+                <div class="section-header">
+
+                    <div class="section-title">
+                        Recent Memories
+                    </div>
+
+                    <button class="section-link" data-page="memory">
+                        View all →
+                    </button>
+
+                </div>
+
+
+                <div class="memory">
+
+                    <div class="memory-icon">
+                        ◈
+                    </div>
+
+                    <div class="memory-content">
+
+                        <div class="memory-title">
+                            TechNova
+                        </div>
+
+                        <div class="memory-description">
+                            CTO raised implementation concerns.
+                        </div>
+
+                        <div class="memory-time">
+                            2 hours ago
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="memory">
+
+                    <div class="memory-icon">
+                        $
+                    </div>
+
+                    <div class="memory-content">
+
+                        <div class="memory-title">
+                            Acme Corp
+                        </div>
+
+                        <div class="memory-description">
+                            Customer requested revised pricing.
+                        </div>
+
+                        <div class="memory-time">
+                            Yesterday
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="memory">
+
+                    <div class="memory-icon">
+                        ◇
+                    </div>
+
+                    <div class="memory-content">
+
+                        <div class="memory-title">
+                            Nova Systems
+                        </div>
+
+                        <div class="memory-description">
+                            Salesforce mentioned as competitor.
+                        </div>
+
+                        <div class="memory-time">
+                            2 days ago
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="memory">
+
+                    <div class="memory-icon">
+                        👤
+                    </div>
+
+                    <div class="memory-content">
+
+                        <div class="memory-title">
+                            GlobalLink
+                        </div>
+
+                        <div class="memory-description">
+                            New stakeholder joined the deal.
+                        </div>
+
+                        <div class="memory-time">
+                            3 days ago
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ==========================
+             AI INSIGHT
+        =========================== -->
+
+        <section class="ai-card">
+
+            <div class="ai-label">
+                ✦ DEAL INTELLIGENCE
+            </div>
+
+            <h3>
+                TechNova needs your attention.
+            </h3>
+
+            <p>
+                Their CTO recently raised implementation concerns.
+                Salesforce is also being evaluated. Prepare for these
+                objections before your next meeting.
+            </p>
+
+            <button
+                class="ai-button"
+                id="briefButton"
+            >
+                Generate Deal Brief →
+            </button>
+
+        </section>
+
+    </main>
+
+</div>
+
+<script src="../assets/JS/theme.js"></script>
+<script src="../assets/JS/dashboard.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,201 @@
+:root {
+    --color-1: #190019;
+    --color-2: #2B124C;
+    --color-3: #522B5B;
+    --color-4: #854F6C;
+    --color-5: #DFB6B2;
+    --color-6: #FBE4D8;
+
+    --background: var(--color-6);
+    --surface: #FFFFFF;
+    --surface-secondary: var(--color-6);
+    --text-primary: var(--color-1);
+    --text-secondary: var(--color-4);
+    --border: color-mix(in srgb, var(--color-2) 12%, transparent);
+    --primary: var(--color-3);
+    --primary-hover: var(--color-2);
+    --accent: var(--color-4);
+    --sidebar: var(--color-1);
+    --card-shadow: 0 8px 30px color-mix(in srgb, var(--color-1) 8%, transparent);
+
+    --bg: var(--background);
+    --card: var(--surface);
+    --text: var(--text-primary);
+    --muted: var(--text-secondary);
+    --text-muted: var(--text-secondary);
+    --darkest: var(--color-1);
+    --dark: var(--color-2);
+    --purple: var(--color-3);
+    --mauve: var(--color-4);
+    --pink: var(--color-5);
+    --cream: var(--color-6);
+    --plum-950: var(--color-1);
+    --plum-900: var(--color-2);
+    --plum-700: var(--color-3);
+    --plum-500: var(--color-4);
+    --pink-300: var(--color-5);
+    --cream-100: var(--color-6);
+    --deep-purple: var(--color-1);
+    --dark-purple: var(--color-2);
+    --muted-purple: var(--color-4);
+    --background-color: var(--background);
+    --shadow: var(--card-shadow);
+}
+
+body.dark {
+    --background: var(--color-1);
+    --surface: var(--color-2);
+    --surface-secondary: var(--color-3);
+    --text-primary: var(--color-6);
+    --text-secondary: var(--color-5);
+    --border: color-mix(in srgb, var(--color-5) 18%, transparent);
+    --primary: var(--color-3);
+    --primary-hover: var(--color-4);
+    --accent: var(--color-4);
+    --sidebar: var(--color-1);
+    --card-shadow: 0 8px 30px color-mix(in srgb, var(--color-1) 25%, transparent);
+
+    --bg: var(--background);
+    --card: var(--surface);
+    --text: var(--text-primary);
+    --muted: var(--text-secondary);
+    --text-muted: var(--text-secondary);
+}
+
+body {
+    background: var(--background);
+    color: var(--text-primary);
+}
+
+body .sidebar {
+    background: var(--sidebar);
+    color: var(--color-6);
+}
+
+body .sidebar :is(a, button, .nav-item) {
+    color: var(--color-5);
+}
+
+body .sidebar :is(.nav-item.active, .nav-menu a.active, .sidebar-nav a.active, [aria-current="page"]) {
+    background: var(--primary);
+    color: var(--color-6);
+}
+
+body .sidebar :is(.nav-item.active, .nav-menu a.active, .sidebar-nav a.active, [aria-current="page"]) .nav-icon {
+    color: var(--color-5);
+}
+
+body :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea) {
+    background-color: var(--surface);
+    border-color: var(--border);
+    color: var(--text-primary);
+}
+
+body.dark :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea) {
+    background-color: var(--color-1);
+}
+
+body :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea):focus {
+    border-color: var(--accent);
+    outline-color: var(--accent);
+}
+
+body :is(
+    .auth-card,
+    .metric-card,
+    .section-card,
+    .ai-card,
+    .summary-card,
+    .deal-header-card,
+    .stat-card,
+    .timeline-card,
+    .insight-card,
+    .categories-card,
+    .key-memory-card,
+    .deal-selector-card,
+    .copilot-chat-card,
+    .action-card:not(.featured),
+    .why-card,
+    .context-card,
+    .patterns-card,
+    .similar-card,
+    .autopsy-card,
+    .lesson-card,
+    .settings-card
+) {
+    background-color: var(--surface);
+    border-color: var(--border);
+    box-shadow: var(--card-shadow);
+    color: var(--text-primary);
+}
+
+body.dark :is(
+    .auth-card,
+    .metric-card,
+    .section-card,
+    .ai-card,
+    .summary-card,
+    .deal-header-card,
+    .stat-card,
+    .timeline-card,
+    .insight-card,
+    .categories-card,
+    .key-memory-card,
+    .deal-selector-card,
+    .copilot-chat-card,
+    .action-card:not(.featured),
+    .why-card,
+    .context-card,
+    .patterns-card,
+    .similar-card,
+    .autopsy-card,
+    .lesson-card,
+    .settings-card
+) {
+    background-color: var(--surface);
+    border-color: var(--border);
+    box-shadow: var(--card-shadow);
+    color: var(--text-primary);
+}
+
+:is(
+    .auth-button,
+    .primary-button,
+    .primary-btn,
+    .ai-button,
+    .action-btn.primary,
+    .generate-button,
+    .send-button,
+    .chat-input-area button,
+    #analyzeBtn
+) {
+    background-color: var(--primary);
+    border-color: var(--primary);
+    color: var(--color-6);
+}
+
+:is(
+    .auth-button,
+    .primary-button,
+    .primary-btn,
+    .ai-button,
+    .action-btn.primary,
+    .generate-button,
+    .send-button,
+    .chat-input-area button,
+    #analyzeBtn
+):hover {
+    background-color: var(--primary-hover);
+    border-color: var(--primary-hover);
+}
+
+:is(.secondary-button, .filter-btn, .filter-button, .prompt-btn, .change-deal-btn, .view-button, .category-btn, .autopsy-btn, .google-button) {
+    border-color: var(--accent);
+    color: var(--primary);
+}
+
+body.dark :is(.secondary-button, .filter-btn, .filter-button, .prompt-btn, .change-deal-btn, .view-button, .category-btn, .autopsy-btn, .google-button) {
+    background-color: var(--color-2);
+    border-color: var(--color-5);
+    color: var(--color-5);
+}
