@@ -1,0 +1,1 @@
+"""Wrap the Hindsight SDK or API behind a small project-facing client."""

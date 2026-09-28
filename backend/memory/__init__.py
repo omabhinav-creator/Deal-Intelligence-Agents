@@ -1,0 +1,1 @@
+"""Memory service adapters used by the backend."""
