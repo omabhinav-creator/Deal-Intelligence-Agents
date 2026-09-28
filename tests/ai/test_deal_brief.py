@@ -175,6 +175,32 @@ def test_deal_with_memories_generates_brief_and_returns_supporting_evidence():
     assert brief.supporting_evidence[0].content == memories[0].text
 
 
+def test_brief_accepts_groq_messages_without_optional_refusal_field():
+    memory = recalled_memory(
+        "memory-1",
+        "TechNova is evaluating the product.",
+        deal_id="technova-deal",
+        memory_type="important_fact",
+    )
+    memory_client = Mock(spec=HindsightMemoryClient)
+    memory_client.recall_memory.return_value = SimpleNamespace(results=[memory])
+    groq_client = Mock()
+    groq_client.chat.completions.create.return_value = SimpleNamespace(
+        choices=[SimpleNamespace(message=SimpleNamespace(
+            content=DealBriefDraft().model_dump_json()
+        ))]
+    )
+    generator = DealBriefGenerator(
+        memory_client=cast(HindsightMemoryClient, memory_client),
+        groq_client=cast(Groq, groq_client),
+    )
+
+    brief = generator.generate("technova-deal")
+
+    assert brief.deal_id == "technova-deal"
+    assert brief.supporting_evidence[0].memory_id == "memory-1"
+
+
 def test_recall_uses_requested_deal_id_and_llm_never_receives_other_deals():
     matching_memory = recalled_memory(
         "memory-1",

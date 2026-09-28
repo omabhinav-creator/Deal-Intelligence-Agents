@@ -104,6 +104,14 @@ def test_process_sales_interaction_runs_notes_to_hindsight_retain():
 		assert call.kwargs["metadata"]["interaction_date"] == interaction_date.isoformat()
 		assert call.kwargs["metadata"]["memory_type"]
 		assert call.kwargs["metadata"]["interaction_source"] == "discovery_meeting"
+	assert len({
+		call.kwargs["document_id"]
+		for call in memory_client.retain_memory.call_args_list
+	}) == len(result.memories)
+	assert all(
+		call.kwargs["document_id"].startswith("technova-discovery-meeting:memory-")
+		for call in memory_client.retain_memory.call_args_list
+	)
 
 
 def test_empty_meeting_notes_fail_before_extraction_or_hindsight():

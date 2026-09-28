@@ -74,4 +74,30 @@ Hindsight is the central intelligence engine of this project (accounting for per
 - **Hindsight Cloud Account** ([Register here](https://ui.hindsight.vectorize.io) — Use code `MEMHACK99` for free credits)
 - **Groq API Key** ([Get free key here](https://groq.com/))
 
+### Local API
+
+DealMind exposes a small FastAPI layer over the existing intelligence services.
+Keep credentials in the local `.env` file; do not commit or share that file.
+
+Install dependencies and start the API with:
+
+```powershell
+python -m pip install -r requirements.txt
+python -m uvicorn app:app --reload
+```
+
+The local API is available at `http://127.0.0.1:8000` and its interactive
+OpenAPI documentation is at `http://127.0.0.1:8000/docs`.
+
+Available endpoints:
+
+- `GET /health`
+- `POST /api/deals/{deal_id}/interactions`
+- `GET /api/deals/{deal_id}/brief`
+- `GET /api/deals/{deal_id}/changes`
+- `GET /api/deals/{deal_id}/similar`
+- `POST /api/deals/{deal_id}/why`
+- `POST /api/deals/{deal_id}/outcome`
+- `POST /api/deals/{deal_id}/autopsy`
+
 ---

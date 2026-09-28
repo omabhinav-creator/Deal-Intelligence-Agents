@@ -82,7 +82,16 @@ def process_sales_interaction(
 	retain_responses: list[RetainResponse] = []
 	for index, memory in enumerate(memories, start=1):
 		try:
-			retain_responses.append(retain_deal_memory(memory, active_memory_client))
+			document_id = (
+				f"{interaction_id}:memory-{index}" if interaction_id else None
+			)
+			retain_responses.append(
+				retain_deal_memory(
+					memory,
+					active_memory_client,
+					document_id=document_id,
+				)
+			)
 		except HindsightMemoryClientError as exc:
 			raise InteractionProcessingError(
 				f"Hindsight retain failed after {len(retain_responses)} of "

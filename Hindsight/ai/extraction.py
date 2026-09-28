@@ -181,7 +181,7 @@ class SalesIntelligenceExtractor:
 		if not choices:
 			raise ExtractionError("Groq returned no extraction choices.")
 		message = choices[0].message
-		if message.refusal:
+		if getattr(message, "refusal", None):
 			raise ExtractionError("Groq refused to extract the meeting notes.")
 		if not message.content:
 			raise ExtractionError("Groq returned an empty extraction.")

@@ -87,6 +87,21 @@ def test_extractor_uses_groq_json_schema_and_returns_validated_data():
 	)
 
 
+def test_extractor_accepts_groq_messages_without_optional_refusal_field():
+	client = Mock()
+	client.chat.completions.create.return_value = SimpleNamespace(
+		choices=[SimpleNamespace(message=SimpleNamespace(
+			content=example_extraction().model_dump_json()
+		))]
+	)
+
+	result = SalesIntelligenceExtractor(client=cast(Groq, client)).extract(
+		"TechNova's CTO requested security documentation."
+	)
+
+	assert result.customer_company == "TechNova"
+
+
 def test_extracted_facts_convert_to_deal_memories_for_the_retain_workflow():
 	extraction = example_extraction()
 	interaction_date = datetime(2026, 9, 28, tzinfo=timezone.utc)

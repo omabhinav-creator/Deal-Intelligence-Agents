@@ -73,6 +73,7 @@ class BriefEvidence(BaseModel):
 	customer_company: str | None = None
 	interaction_date: str | None = None
 	interaction_source: str | None = None
+	interaction_id: str | None = None
 	stakeholder_name: str | None = None
 
 
@@ -174,7 +175,7 @@ class DealBriefGenerator:
 		if not response.choices:
 			raise DealBriefError("Groq returned no deal brief choices.")
 		message = response.choices[0].message
-		if message.refusal:
+		if getattr(message, "refusal", None):
 			raise DealBriefError("Groq refused to generate the deal brief.")
 		if not message.content:
 			raise DealBriefError("Groq returned an empty deal brief.")
@@ -272,5 +273,6 @@ def memory_to_brief_evidence(memory: RecallResult) -> BriefEvidence:
 			or memory.mentioned_at
 		),
 		interaction_source=metadata.get("interaction_source"),
+		interaction_id=metadata.get("interaction_id") or getattr(memory, "document_id", None),
 		stakeholder_name=metadata.get("stakeholder_name"),
 	)

@@ -1,7 +1,9 @@
 """Validated DealMind memory records and their Hindsight metadata."""
 
+import json
 from datetime import datetime
 from enum import Enum
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -43,6 +45,8 @@ class DealMemory(BaseModel):
 	interaction_source: str | None = Field(default=None, min_length=1)
 	stakeholder_name: str | None = Field(default=None, min_length=1)
 	status: str | None = Field(default=None, min_length=1)
+	evidence_basis: Literal["observed", "inferred"] | None = None
+	supporting_memory_ids: list[str] = Field(default_factory=list)
 
 	def to_hindsight_metadata(self) -> dict[str, str]:
 		"""Return string metadata suitable for the Hindsight retain API."""
@@ -59,10 +63,13 @@ class DealMemory(BaseModel):
 			"interaction_source": self.interaction_source,
 			"stakeholder_name": self.stakeholder_name,
 			"status": self.status,
+			"evidence_basis": self.evidence_basis,
 		}
 		metadata.update(
 			{key: value for key, value in optional_metadata.items() if value is not None}
 		)
+		if self.supporting_memory_ids:
+			metadata["supporting_memory_ids"] = json.dumps(self.supporting_memory_ids)
 		return metadata
 
 	def to_hindsight_tags(self) -> list[str]:
