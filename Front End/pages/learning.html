@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>DealMind — Learning</title>
+
+  <link rel="stylesheet" href="../assets/CSS/learning.css" />
+  <link rel="stylesheet" href="../assets/CSS/theme.css" />
+
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+  />
+</head>
+
+<body>
+
+  <!-- ================================
+       SIDEBAR
+       ================================ -->
+
+  <aside class="sidebar">
+
+    <div class="logo">
+      <div class="logo-icon">
+        <i class="fa-solid fa-brain"></i>
+      </div>
+
+      <span>DealMind</span>
+    </div>
+
+
+    <nav class="nav-menu">
+
+      <a href="dashboard.html">
+        <i class="fa-solid fa-house"></i>
+        <span>Dashboard</span>
+      </a>
+
+      <a href="deals.html">
+        <i class="fa-solid fa-briefcase"></i>
+        <span>Deals</span>
+      </a>
+
+      <a href="dealmemory.html">
+        <i class="fa-solid fa-brain"></i>
+        <span>Deal Memory</span>
+      </a>
+
+      <a href="aicopilot.html">
+        <i class="fa-solid fa-wand-magic-sparkles"></i>
+        <span>AI Copilot</span>
+      </a>
+
+      <a href="learning.html" class="active">
+        <i class="fa-solid fa-chart-line"></i>
+        <span>Learning</span>
+      </a>
+
+    </nav>
+
+
+    <div class="sidebar-bottom">
+
+      <div class="user-profile">
+
+        <div class="avatar">
+          SS
+        </div>
+
+        <div>
+          <strong>Sahasra</strong>
+          <span>Sales Manager</span>
+        </div>
+
+      </div>
+
+    </div>
+
+  </aside>
+
+
+
+  <!-- ================================
+       MAIN CONTENT
+       ================================ -->
+
+  <main class="main-content">
+
+
+    <!-- TOPBAR -->
+
+    <header class="topbar">
+
+      <div>
+
+        <h1>Learning</h1>
+
+        <p>
+          Turn your past deals into better sales decisions.
+        </p>
+
+      </div>
+
+
+      <div class="topbar-actions">
+
+        <button
+          class="icon-btn"
+          id="themeToggle"
+          title="Toggle theme"
+        >
+          <i class="fa-solid fa-moon"></i>
+        </button>
+
+        <div class="notification">
+
+          <i class="fa-regular fa-bell"></i>
+
+          <span></span>
+
+        </div>
+
+      </div>
+
+    </header>
+
+
+
+    <!-- ================================
+         LEARNING OVERVIEW
+         ================================ -->
+
+    <section class="learning-overview">
+
+      <div class="overview-content">
+
+        <div class="overview-icon">
+          <i class="fa-solid fa-lightbulb"></i>
+        </div>
+
+        <div>
+
+          <h2>Your deals are teaching you.</h2>
+
+          <p>
+            DealMind analyzes completed and active deals
+            to identify patterns, understand what works,
+            and surface lessons for future conversations.
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <button
+        class="primary-btn"
+        id="analyzeBtn"
+      >
+
+        <i class="fa-solid fa-wand-magic-sparkles"></i>
+
+        Analyze My Deals
+
+      </button>
+
+    </section>
+
+
+
+    <!-- ================================
+         LEARNING STATS
+         ================================ -->
+
+    <section class="learning-stats">
+
+      <div class="stat-card">
+
+        <div class="stat-icon purple">
+          <i class="fa-solid fa-trophy"></i>
+        </div>
+
+        <div>
+
+          <span>Winning Patterns</span>
+
+          <strong>8</strong>
+
+          <small>identified</small>
+
+        </div>
+
+      </div>
+
+
+      <div class="stat-card">
+
+        <div class="stat-icon pink">
+          <i class="fa-solid fa-link"></i>
+        </div>
+
+        <div>
+
+          <span>Similar Deals</span>
+
+          <strong>14</strong>
+
+          <small>matched</small>
+
+        </div>
+
+      </div>
+
+
+      <div class="stat-card">
+
+        <div class="stat-icon beige">
+          <i class="fa-solid fa-book-open"></i>
+        </div>
+
+        <div>
+
+          <span>Lessons Learned</span>
+
+          <strong>23</strong>
+
+          <small>captured</small>
+
+        </div>
+
+      </div>
+
+
+      <div class="stat-card">
+
+        <div class="stat-icon dark">
+          <i class="fa-solid fa-chart-line"></i>
+        </div>
+
+        <div>
+
+          <span>Deals Analyzed</span>
+
+          <strong>47</strong>
+
+          <small>this quarter</small>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+
+    <!-- ================================
+         MAIN LEARNING GRID
+         ================================ -->
+
+    <section class="learning-grid">
+
+
+      <!-- ================================
+           WINNING PATTERNS
+           ================================ -->
+
+      <div class="patterns-card">
+
+        <div class="section-header">
+
+          <div>
+
+            <h3>Winning Patterns</h3>
+
+            <p>
+              Strategies that have worked across your deals.
+            </p>
+
+          </div>
+
+          <button
+            class="small-action"
+            id="patternsBtn"
+          >
+            View all
+          </button>
+
+        </div>
+
+
+        <div class="pattern-list">
+
+
+          <div class="pattern-item">
+
+            <div class="pattern-number">
+              01
+            </div>
+
+            <div class="pattern-info">
+
+              <h4>Phased Implementation</h4>
+
+              <p>
+                Customers respond positively when
+                implementation is broken into smaller phases.
+              </p>
+
+              <div class="pattern-meta">
+
+                <span>
+                  <i class="fa-solid fa-chart-line"></i>
+                  Used in 12 deals
+                </span>
+
+                <span class="success">
+                  <i class="fa-solid fa-circle-check"></i>
+                  75% success
+                </span>
+
+              </div>
+
+            </div>
+
+          </div>
+
+
+
+          <div class="pattern-item">
+
+            <div class="pattern-number">
+              02
+            </div>
+
+            <div class="pattern-info">
+
+              <h4>ROI Before Pricing</h4>
+
+              <p>
+                Discussing measurable business value before
+                price reduces early pricing resistance.
+              </p>
+
+              <div class="pattern-meta">
+
+                <span>
+                  <i class="fa-solid fa-chart-line"></i>
+                  Used in 9 deals
+                </span>
+
+                <span class="success">
+                  <i class="fa-solid fa-circle-check"></i>
+                  67% success
+                </span>
+
+              </div>
+
+            </div>
+
+          </div>
+
+
+
+          <div class="pattern-item">
+
+            <div class="pattern-number">
+              03
+            </div>
+
+            <div class="pattern-info">
+
+              <h4>CTO-Focused Technical Proof</h4>
+
+              <p>
+                Technical stakeholders engage more when
+                integration concerns are addressed early.
+              </p>
+
+              <div class="pattern-meta">
+
+                <span>
+                  <i class="fa-solid fa-chart-line"></i>
+                  Used in 7 deals
+                </span>
+
+                <span class="success">
+                  <i class="fa-solid fa-circle-check"></i>
+                  71% success
+                </span>
+
+              </div>
+
+            </div>
+
+          </div>
+
+
+        </div>
+
+      </div>
+
+
+
+      <!-- ================================
+           SIMILAR DEALS
+           ================================ -->
+
+      <div class="similar-card">
+
+        <div class="section-header">
+
+          <div>
+
+            <h3>Similar Deals</h3>
+
+            <p>
+              Past deals that resemble TechNova.
+            </p>
+
+          </div>
+
+          <button
+            class="small-action"
+            id="similarBtn"
+          >
+            View all
+          </button>
+
+        </div>
+
+
+        <div class="similar-list">
+
+
+          <div class="similar-deal">
+
+            <div class="deal-avatar">
+              AC
+            </div>
+
+            <div class="similar-info">
+
+              <h4>Acme Corp</h4>
+
+              <span>
+                $95K · Negotiation
+              </span>
+
+            </div>
+
+            <div class="similar-match">
+
+              <strong>92%</strong>
+
+              <span>match</span>
+
+            </div>
+
+          </div>
+
+
+
+          <div class="similar-deal">
+
+            <div class="deal-avatar">
+              NS
+            </div>
+
+            <div class="similar-info">
+
+              <h4>Nova Systems</h4>
+
+              <span>
+                $180K · Negotiation
+              </span>
+
+            </div>
+
+            <div class="similar-match">
+
+              <strong>87%</strong>
+
+              <span>match</span>
+
+            </div>
+
+          </div>
+
+
+
+          <div class="similar-deal">
+
+            <div class="deal-avatar">
+              VL
+            </div>
+
+            <div class="similar-info">
+
+              <h4>Vertex Labs</h4>
+
+              <span>
+                $130K · Proposal
+              </span>
+
+            </div>
+
+            <div class="similar-match">
+
+              <strong>81%</strong>
+
+              <span>match</span>
+
+            </div>
+
+          </div>
+
+
+
+          <div class="similar-deal">
+
+            <div class="deal-avatar">
+              GL
+            </div>
+
+            <div class="similar-info">
+
+              <h4>GlobalLink</h4>
+
+              <span>
+                $72K · Negotiation
+              </span>
+
+            </div>
+
+            <div class="similar-match">
+
+              <strong>76%</strong>
+
+              <span>match</span>
+
+            </div>
+
+          </div>
+
+
+        </div>
+
+      </div>
+
+
+    </section>
+
+
+
+    <!-- ================================
+         DEAL AUTOPSY
+         ================================ -->
+
+    <section class="autopsy-section">
+
+      <div class="section-header">
+
+        <div>
+
+          <h3>Deal Autopsy</h3>
+
+          <p>
+            Understand what happened in recently closed deals.
+          </p>
+
+        </div>
+
+        <button
+          class="small-action"
+          id="autopsyBtn"
+        >
+          View all
+        </button>
+
+      </div>
+
+
+      <div class="autopsy-grid">
+
+
+        <!-- WON DEAL -->
+
+        <div class="autopsy-card">
+
+          <div class="autopsy-top">
+
+            <div class="autopsy-company">
+
+              <div class="deal-avatar">
+                AL
+              </div>
+
+              <div>
+
+                <h4>Atlas Labs</h4>
+
+                <span>
+                  Closed 6 days ago
+                </span>
+
+              </div>
+
+            </div>
+
+            <span class="outcome won">
+              Won
+            </span>
+
+          </div>
+
+
+          <div class="autopsy-value">
+            $145K
+          </div>
+
+
+          <div class="autopsy-divider"></div>
+
+
+          <div class="autopsy-row">
+
+            <span>Key factor</span>
+
+            <strong>
+              Strong ROI case
+            </strong>
+
+          </div>
+
+
+          <div class="autopsy-row">
+
+            <span>Winning move</span>
+
+            <strong>
+              Executive demo
+            </strong>
+
+          </div>
+
+
+          <button
+            class="autopsy-btn"
+            data-deal="Atlas Labs"
+          >
+
+            View analysis
+
+            <i class="fa-solid fa-arrow-right"></i>
+
+          </button>
+
+        </div>
+
+
+
+        <!-- LOST DEAL -->
+
+        <div class="autopsy-card">
+
+          <div class="autopsy-top">
+
+            <div class="autopsy-company">
+
+              <div class="deal-avatar">
+                QL
+              </div>
+
+              <div>
+
+                <h4>Quantum Logic</h4>
+
+                <span>
+                  Closed 12 days ago
+                </span>
+
+              </div>
+
+            </div>
+
+            <span class="outcome lost">
+              Lost
+            </span>
+
+          </div>
+
+
+          <div class="autopsy-value">
+            $110K
+          </div>
+
+
+          <div class="autopsy-divider"></div>
+
+
+          <div class="autopsy-row">
+
+            <span>Key factor</span>
+
+            <strong>
+              Competitor pricing
+            </strong>
+
+          </div>
+
+
+          <div class="autopsy-row">
+
+            <span>Missed signal</span>
+
+            <strong>
+              Procurement concern
+            </strong>
+
+          </div>
+
+
+          <button
+            class="autopsy-btn"
+            data-deal="Quantum Logic"
+          >
+
+            View analysis
+
+            <i class="fa-solid fa-arrow-right"></i>
+
+          </button>
+
+        </div>
+
+
+
+        <!-- WON DEAL -->
+
+        <div class="autopsy-card">
+
+          <div class="autopsy-top">
+
+            <div class="autopsy-company">
+
+              <div class="deal-avatar">
+                MS
+              </div>
+
+              <div>
+
+                <h4>MedSys</h4>
+
+                <span>
+                  Closed 19 days ago
+                </span>
+
+              </div>
+
+            </div>
+
+            <span class="outcome won">
+              Won
+            </span>
+
+          </div>
+
+
+          <div class="autopsy-value">
+            $210K
+          </div>
+
+
+          <div class="autopsy-divider"></div>
+
+
+          <div class="autopsy-row">
+
+            <span>Key factor</span>
+
+            <strong>
+              Multiple stakeholders
+            </strong>
+
+          </div>
+
+
+          <div class="autopsy-row">
+
+            <span>Winning move</span>
+
+            <strong>
+              Consensus building
+            </strong>
+
+          </div>
+
+
+          <button
+            class="autopsy-btn"
+            data-deal="MedSys"
+          >
+
+            View analysis
+
+            <i class="fa-solid fa-arrow-right"></i>
+
+          </button>
+
+        </div>
+
+
+      </div>
+
+    </section>
+
+
+
+    <!-- ================================
+         LESSONS LEARNED
+         ================================ -->
+
+    <section class="lessons-section">
+
+      <div class="section-header">
+
+        <div>
+
+          <h3>Lessons Learned</h3>
+
+          <p>
+            Insights DealMind has captured from your sales history.
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <div class="lessons-grid">
+
+
+        <div class="lesson-card">
+
+          <div class="lesson-icon">
+            <i class="fa-solid fa-comments"></i>
+          </div>
+
+          <div>
+
+            <span>Communication</span>
+
+            <h4>
+              Address objections early
+            </h4>
+
+            <p>
+              Deals move faster when major concerns
+              are surfaced before final negotiation.
+            </p>
+
+          </div>
+
+        </div>
+
+
+
+        <div class="lesson-card">
+
+          <div class="lesson-icon">
+            <i class="fa-solid fa-users"></i>
+          </div>
+
+          <div>
+
+            <span>Stakeholders</span>
+
+            <h4>
+              Map decision makers early
+            </h4>
+
+            <p>
+              Understanding who influences the final
+              decision helps avoid late-stage surprises.
+            </p>
+
+          </div>
+
+        </div>
+
+
+
+        <div class="lesson-card">
+
+          <div class="lesson-icon">
+            <i class="fa-solid fa-chart-line"></i>
+          </div>
+
+          <div>
+
+            <span>Strategy</span>
+
+            <h4>
+              Lead with measurable value
+            </h4>
+
+            <p>
+              Business outcomes create stronger
+              conversations than feature lists alone.
+            </p>
+
+          </div>
+
+        </div>
+
+
+      </div>
+
+    </section>
+
+
+  </main>
+
+
+  <script src="../assets/JS/theme.js"></script>
+  <script src="../assets/JS/learning.js"></script>
+
+</body>
+</html>

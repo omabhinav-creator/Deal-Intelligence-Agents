@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DealMind | Sign In</title>
+
+    <link rel="stylesheet" href="../assets/CSS/auth.css">
+    <link rel="stylesheet" href="../assets/CSS/theme.css">
+</head>
+<body>
+
+    <div class="auth-page">
+
+        <!-- LEFT BRAND PANEL -->
+        <section class="auth-brand">
+            <div class="brand-content">
+
+                <div class="logo">
+                    <div class="logo-mark">D</div>
+                    <span>DealMind</span>
+                </div>
+
+                <div class="brand-message">
+                    <span class="eyebrow">AI-POWERED DEAL INTELLIGENCE</span>
+
+                    <h1>
+                        Your deals<br>
+                        <span>remember everything.</span>
+                    </h1>
+
+                    <p>
+                        Turn every conversation, objection and decision
+                        into intelligent deal memory.
+                    </p>
+                </div>
+
+                <div class="brand-features">
+                    <div class="feature">
+                        <div class="feature-icon">🧠</div>
+                        <div>
+                            <strong>Deal Memory</strong>
+                            <span>Never lose important context.</span>
+                        </div>
+                    </div>
+
+                    <div class="feature">
+                        <div class="feature-icon">🤖</div>
+                        <div>
+                            <strong>AI Copilot</strong>
+                            <span>Get smarter deal recommendations.</span>
+                        </div>
+                    </div>
+
+                    <div class="feature">
+                        <div class="feature-icon">📈</div>
+                        <div>
+                            <strong>Learn From Deals</strong>
+                            <span>Discover patterns that actually work.</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+
+        <!-- RIGHT AUTH PANEL -->
+        <section class="auth-container">
+
+            <div class="auth-card">
+
+                <div class="mobile-logo">
+                    <div class="logo-mark">D</div>
+                    <span>DealMind</span>
+                </div>
+
+                <!-- SIGN IN -->
+                <div class="auth-form active" id="signinForm">
+
+                    <div class="form-header">
+                        <span class="eyebrow">WELCOME BACK</span>
+                        <h2>Sign in to DealMind</h2>
+                        <p>Continue where you left off.</p>
+                    </div>
+
+                    <form id="signInForm">
+
+                        <div class="input-group">
+                            <label for="signinEmail">Email</label>
+                            <input
+                                type="email"
+                                id="signinEmail"
+                                placeholder="you@company.com"
+                                required
+                            >
+                        </div>
+
+                        <div class="input-group">
+                            <div class="label-row">
+                                <label for="signinPassword">Password</label>
+                                <a href="#" id="forgotPassword">Forgot password?</a>
+                            </div>
+
+                            <div class="password-input">
+                                <input
+                                    type="password"
+                                    id="signinPassword"
+                                    placeholder="Enter your password"
+                                    required
+                                >
+                                <button
+                                    type="button"
+                                    class="password-toggle"
+                                    data-target="signinPassword"
+                                >
+                                    Show
+                                </button>
+                            </div>
+                        </div>
+
+                        <label class="checkbox-row">
+                            <input type="checkbox" id="rememberMe">
+                            <span>Remember me</span>
+                        </label>
+
+                        <button type="submit" class="auth-button">
+                            Sign In
+                            <span>→</span>
+                        </button>
+
+                    </form>
+
+                    <div class="divider">
+                        <span>or</span>
+                    </div>
+
+                    <button class="google-button" id="googleSignIn">
+                        <span class="google-icon">G</span>
+                        Continue with Google
+                    </button>
+
+                    <p class="switch-text">
+                        Don't have an account?
+                        <button type="button" id="showSignup">
+                            Create one
+                        </button>
+                    </p>
+
+                </div>
+
+
+                <!-- SIGN UP -->
+                <div class="auth-form" id="signupForm">
+
+                    <div class="form-header">
+                        <span class="eyebrow">GET STARTED</span>
+                        <h2>Create your account</h2>
+                        <p>Start building smarter deals today.</p>
+                    </div>
+
+                    <form id="signUpForm">
+
+                        <div class="input-group">
+                            <label for="signupName">Full name</label>
+                            <input
+                                type="text"
+                                id="signupName"
+                                placeholder="Your name"
+                                required
+                            >
+                        </div>
+
+                        <div class="input-group">
+                            <label for="signupEmail">Work email</label>
+                            <input
+                                type="email"
+                                id="signupEmail"
+                                placeholder="you@company.com"
+                                required
+                            >
+                        </div>
+
+                        <div class="input-group">
+                            <label for="signupPassword">Password</label>
+
+                            <div class="password-input">
+                                <input
+                                    type="password"
+                                    id="signupPassword"
+                                    placeholder="Create a password"
+                                    required
+                                >
+
+                                <button
+                                    type="button"
+                                    class="password-toggle"
+                                    data-target="signupPassword"
+                                >
+                                    Show
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="password-hint">
+                            Use at least 8 characters.
+                        </div>
+
+                        <label class="checkbox-row terms-row">
+                            <input type="checkbox" id="terms" required>
+                            <span>
+                                I agree to the
+                                <a href="#">Terms of Service</a>
+                                and
+                                <a href="#">Privacy Policy</a>.
+                            </span>
+                        </label>
+
+                        <button type="submit" class="auth-button">
+                            Create Account
+                            <span>→</span>
+                        </button>
+
+                    </form>
+
+                    <div class="divider">
+                        <span>or</span>
+                    </div>
+
+                    <button class="google-button" id="googleSignUp">
+                        <span class="google-icon">G</span>
+                        Sign up with Google
+                    </button>
+
+                    <p class="switch-text">
+                        Already have an account?
+                        <button type="button" id="showSignin">
+                            Sign in
+                        </button>
+                    </p>
+
+                </div>
+
+                <div class="theme-control">
+                    <button id="themeToggle" title="Toggle theme">
+                        ☾
+                    </button>
+                </div>
+
+            </div>
+
+            <div class="auth-footer">
+                © 2026 DealMind · AI-powered deal intelligence
+            </div>
+
+        </section>
+
+    </div>
+
+    <script src="../assets/JS/theme.js"></script>
+    <script src="../assets/JS/auth.js"></script>
+</body>
+</html>

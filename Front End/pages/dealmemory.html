@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DealMind — Deal Memory</title>
+  <link rel="stylesheet" href="../assets/CSS/dealmemory.css" />
+  <link rel="stylesheet" href="../assets/CSS/theme.css" />
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+  />
+</head>
+
+<body>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-icon">
+        <i class="fa-solid fa-brain"></i>
+      </div>
+      <span>DealMind</span>
+    </div>
+
+    <nav class="nav-menu">
+      <a href="dashboard.html">
+        <i class="fa-solid fa-house"></i>
+        <span>Dashboard</span>
+      </a>
+
+      <a href="deals.html">
+        <i class="fa-solid fa-briefcase"></i>
+        <span>Deals</span>
+      </a>
+
+      <a href="dealmemory.html" class="active">
+        <i class="fa-solid fa-brain"></i>
+        <span>Deal Memory</span>
+      </a>
+
+      <a href="aicopilot.html">
+        <i class="fa-solid fa-wand-magic-sparkles"></i>
+        <span>AI Copilot</span>
+      </a>
+
+      <a href="learning.html">
+        <i class="fa-solid fa-chart-line"></i>
+        <span>Learning</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-bottom">
+      <div class="user-profile">
+        <div class="avatar">SS</div>
+        <div>
+          <strong>Sahasra</strong>
+          <span>Sales Manager</span>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+
+  <!-- MAIN CONTENT -->
+  <main class="main-content">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <div>
+        <h1>Deal Memory</h1>
+        <p>Everything your team has learned about this deal.</p>
+      </div>
+
+      <div class="topbar-actions">
+        <button class="icon-btn" id="themeToggle" title="Toggle theme">
+          <i class="fa-solid fa-moon"></i>
+        </button>
+
+        <div class="notification">
+          <i class="fa-regular fa-bell"></i>
+          <span></span>
+        </div>
+      </div>
+    </header>
+
+
+    <!-- DEAL HEADER -->
+    <section class="deal-header-card">
+
+      <div class="deal-title-section">
+        <div class="company-logo">TN</div>
+
+        <div>
+          <div class="title-row">
+            <h2>TechNova</h2>
+            <span class="stage-badge">Negotiation</span>
+            <span class="risk-badge medium">Medium Risk</span>
+          </div>
+
+          <p>Enterprise Software Deal · Last updated 2 hours ago</p>
+        </div>
+      </div>
+
+      <div class="deal-value">
+        <span>Deal Value</span>
+        <strong>$120K</strong>
+      </div>
+
+    </section>
+
+
+    <!-- QUICK STATS -->
+    <section class="memory-stats">
+
+      <div class="stat-card">
+        <div class="stat-icon purple">
+          <i class="fa-solid fa-comments"></i>
+        </div>
+        <div>
+          <span>Interactions</span>
+          <strong>18</strong>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon pink">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+        <div>
+          <span>Objections</span>
+          <strong>4</strong>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon beige">
+          <i class="fa-solid fa-users"></i>
+        </div>
+        <div>
+          <span>Stakeholders</span>
+          <strong>5</strong>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon dark">
+          <i class="fa-solid fa-building"></i>
+        </div>
+        <div>
+          <span>Competitors</span>
+          <strong>2</strong>
+        </div>
+      </div>
+
+    </section>
+
+
+    <!-- MAIN GRID -->
+    <section class="memory-layout">
+
+      <!-- TIMELINE -->
+      <div class="timeline-card">
+
+        <div class="section-header">
+          <div>
+            <h3>Memory Timeline</h3>
+            <p>Key moments captured from your deal interactions.</p>
+          </div>
+
+          <button class="filter-btn" id="filterBtn">
+            <i class="fa-solid fa-filter"></i>
+            Filter
+          </button>
+        </div>
+
+        <div class="timeline">
+
+          <!-- DAY 1 -->
+          <div class="timeline-item">
+            <div class="timeline-dot purple-dot"></div>
+
+            <div class="timeline-content">
+              <div class="timeline-top">
+                <span class="day">Day 1</span>
+                <span class="memory-type requirements">Requirements</span>
+              </div>
+
+              <h4>Initial requirements discussed</h4>
+
+              <p>
+                TechNova shared their need for an enterprise solution
+                focused on improving internal sales operations.
+              </p>
+
+              <div class="memory-tags">
+                <span><i class="fa-solid fa-user"></i> Priya — VP Sales</span>
+                <span><i class="fa-solid fa-tag"></i> Requirements</span>
+              </div>
+            </div>
+          </div>
+
+
+          <!-- DAY 5 -->
+          <div class="timeline-item">
+            <div class="timeline-dot pink-dot"></div>
+
+            <div class="timeline-content">
+              <div class="timeline-top">
+                <span class="day">Day 5</span>
+                <span class="memory-type objection">Objection</span>
+              </div>
+
+              <h4>Pricing objection raised</h4>
+
+              <p>
+                Customer questioned the implementation cost and asked
+                whether pricing could be adjusted for the first year.
+              </p>
+
+              <div class="memory-tags">
+                <span><i class="fa-solid fa-user"></i> Priya — VP Sales</span>
+                <span><i class="fa-solid fa-dollar-sign"></i> Pricing</span>
+              </div>
+            </div>
+          </div>
+
+
+          <!-- DAY 10 -->
+          <div class="timeline-item">
+            <div class="timeline-dot beige-dot"></div>
+
+            <div class="timeline-content">
+              <div class="timeline-top">
+                <span class="day">Day 10</span>
+                <span class="memory-type competitor">Competitor</span>
+              </div>
+
+              <h4>Salesforce mentioned</h4>
+
+              <p>
+                TechNova revealed that Salesforce is also being evaluated
+                as an alternative solution.
+              </p>
+
+              <div class="memory-tags">
+                <span><i class="fa-solid fa-user"></i> Rahul — CTO</span>
+                <span><i class="fa-solid fa-building"></i> Salesforce</span>
+              </div>
+            </div>
+          </div>
+
+
+          <!-- DAY 15 -->
+          <div class="timeline-item">
+            <div class="timeline-dot purple-dot"></div>
+
+            <div class="timeline-content">
+              <div class="timeline-top">
+                <span class="day">Day 15</span>
+                <span class="memory-type stakeholder">Stakeholder</span>
+              </div>
+
+              <h4>CTO raised implementation concern</h4>
+
+              <p>
+                Rahul expressed concern about migration effort and
+                integration with TechNova's existing systems.
+              </p>
+
+              <div class="memory-tags">
+                <span><i class="fa-solid fa-user"></i> Rahul — CTO</span>
+                <span><i class="fa-solid fa-link"></i> Integration</span>
+              </div>
+            </div>
+          </div>
+
+
+          <!-- DAY 18 -->
+          <div class="timeline-item">
+            <div class="timeline-dot pink-dot"></div>
+
+            <div class="timeline-content">
+              <div class="timeline-top">
+                <span class="day">Day 18</span>
+                <span class="memory-type strategy">Strategy</span>
+              </div>
+
+              <h4>Implementation plan shared</h4>
+
+              <p>
+                A phased implementation approach was proposed to reduce
+                migration risk and address the CTO's concerns.
+              </p>
+
+              <div class="memory-tags">
+                <span><i class="fa-solid fa-user"></i> Sales Team</span>
+                <span><i class="fa-solid fa-lightbulb"></i> Strategy</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+
+      <!-- RIGHT PANEL -->
+      <aside class="memory-sidebar">
+
+        <!-- AI SUMMARY -->
+        <div class="insight-card">
+
+          <div class="insight-header">
+            <div class="insight-icon">
+              <i class="fa-solid fa-wand-magic-sparkles"></i>
+            </div>
+
+            <div>
+              <h3>AI Memory Summary</h3>
+              <span>Updated 2 hours ago</span>
+            </div>
+          </div>
+
+          <p>
+            TechNova's main concerns are <strong>pricing</strong> and
+            <strong>implementation effort</strong>. Salesforce is the
+            primary competitor mentioned so far.
+          </p>
+
+          <div class="insight-point">
+            <i class="fa-solid fa-circle-check"></i>
+            <span>Customer responds well to phased implementation plans.</span>
+          </div>
+
+          <div class="insight-point">
+            <i class="fa-solid fa-circle-exclamation"></i>
+            <span>Pricing remains a potential deal blocker.</span>
+          </div>
+
+          <button class="primary-btn" id="briefBtn">
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+            Generate Deal Brief
+          </button>
+
+        </div>
+
+
+        <!-- KEY MEMORY -->
+        <div class="key-memory-card">
+
+          <div class="section-header small">
+            <div>
+              <h3>Key Memory</h3>
+              <p>Important information to remember.</p>
+            </div>
+          </div>
+
+          <div class="key-item">
+            <div class="key-icon">
+              <i class="fa-solid fa-user"></i>
+            </div>
+            <div>
+              <span>Decision Maker</span>
+              <strong>Rahul Mehta — CTO</strong>
+            </div>
+          </div>
+
+          <div class="key-item">
+            <div class="key-icon">
+              <i class="fa-solid fa-building"></i>
+            </div>
+            <div>
+              <span>Main Competitor</span>
+              <strong>Salesforce</strong>
+            </div>
+          </div>
+
+          <div class="key-item">
+            <div class="key-icon">
+              <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <div>
+              <span>Main Concern</span>
+              <strong>Implementation Cost</strong>
+            </div>
+          </div>
+
+          <div class="key-item">
+            <div class="key-icon">
+              <i class="fa-solid fa-lightbulb"></i>
+            </div>
+            <div>
+              <span>What Worked</span>
+              <strong>Phased Implementation</strong>
+            </div>
+          </div>
+
+        </div>
+
+
+        <!-- MEMORY CATEGORIES -->
+        <div class="categories-card">
+
+          <div class="section-header small">
+            <div>
+              <h3>Memory Categories</h3>
+              <p>Captured from conversations.</p>
+            </div>
+          </div>
+
+          <div class="category-list">
+
+            <button class="category-btn" data-category="objections">
+              <span>
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                Objections
+              </span>
+              <strong>4</strong>
+            </button>
+
+            <button class="category-btn" data-category="stakeholders">
+              <span>
+                <i class="fa-solid fa-users"></i>
+                Stakeholders
+              </span>
+              <strong>5</strong>
+            </button>
+
+            <button class="category-btn" data-category="competitors">
+              <span>
+                <i class="fa-solid fa-building"></i>
+                Competitors
+              </span>
+              <strong>2</strong>
+            </button>
+
+            <button class="category-btn" data-category="pricing">
+              <span>
+                <i class="fa-solid fa-dollar-sign"></i>
+                Pricing
+              </span>
+              <strong>3</strong>
+            </button>
+
+          </div>
+
+        </div>
+
+      </aside>
+
+    </section>
+
+  </main>
+
+  <script src="../assets/JS/theme.js"></script>
+  <script src="../assets/JS/dealmemory.js"></script>
+</body>
+</html>

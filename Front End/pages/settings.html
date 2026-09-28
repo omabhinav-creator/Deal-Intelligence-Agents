@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>DealMind | Settings</title>
+
+    <link rel="stylesheet" href="../assets/CSS/settings.css">
+    <link rel="stylesheet" href="../assets/CSS/theme.css">
+</head>
+
+<body>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+
+        <div class="sidebar-logo">
+            <div class="logo-mark">D</div>
+            <span>DealMind</span>
+        </div>
+
+        <nav class="sidebar-nav">
+
+            <a href="dashboard.html" class="nav-item">
+                <span class="nav-icon">⌂</span>
+                <span>Dashboard</span>
+            </a>
+
+            <a href="deals.html" class="nav-item">
+                <span class="nav-icon">▣</span>
+                <span>Deals</span>
+            </a>
+
+            <a href="dealmemory.html" class="nav-item">
+                <span class="nav-icon">◈</span>
+                <span>Deal Memory</span>
+            </a>
+
+            <a href="aicopilot.html" class="nav-item">
+                <span class="nav-icon">✦</span>
+                <span>AI Copilot</span>
+            </a>
+
+            <a href="learning.html" class="nav-item">
+                <span class="nav-icon">↗</span>
+                <span>Learning</span>
+            </a>
+
+        </nav>
+
+        <div class="sidebar-bottom">
+
+            <a href="settings.html" class="nav-item active">
+                <span class="nav-icon">⚙</span>
+                <span>Settings</span>
+            </a>
+
+            <button class="logout-button" id="logoutButton">
+                <span class="nav-icon">↪</span>
+                <span>Logout</span>
+            </button>
+
+        </div>
+
+    </aside>
+
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+
+        <!-- TOPBAR -->
+        <header class="topbar">
+
+            <div>
+                <h1>Settings</h1>
+                <p>Manage your DealMind preferences and account.</p>
+            </div>
+
+            <button id="themeToggle" class="theme-toggle" title="Toggle theme">
+                ☾
+            </button>
+
+        </header>
+
+
+        <!-- SETTINGS CONTENT -->
+        <section class="settings-container">
+
+            <!-- PROFILE -->
+            <div class="settings-card">
+
+                <div class="section-header">
+                    <div>
+                        <span class="section-label">ACCOUNT</span>
+                        <h2>Profile</h2>
+                        <p>Manage your personal information.</p>
+                    </div>
+                </div>
+
+                <div class="profile-section">
+
+                    <div class="profile-avatar" id="profileAvatar">
+                        U
+                    </div>
+
+                    <div class="profile-info">
+                        <h3 id="profileName">DealMind User</h3>
+                        <p id="profileEmail">user@example.com</p>
+                    </div>
+
+                    <button class="secondary-button" id="editProfileButton">
+                        Edit Profile
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <!-- GENERAL SETTINGS -->
+            <div class="settings-card">
+
+                <div class="section-header">
+                    <div>
+                        <span class="section-label">PREFERENCES</span>
+                        <h2>General</h2>
+                        <p>Customize how DealMind works for you.</p>
+                    </div>
+                </div>
+
+
+                <div class="setting-row">
+
+                    <div class="setting-text">
+                        <h3>Appearance</h3>
+                        <p>Choose between light and dark mode.</p>
+                    </div>
+
+                    <select id="appearanceSelect">
+                        <option value="light">Light</option>
+                        <option value="dark">Dark</option>
+                    </select>
+
+                </div>
+
+
+                <div class="setting-row">
+
+                    <div class="setting-text">
+                        <h3>AI Deal Insights</h3>
+                        <p>Show AI-generated insights across your deals.</p>
+                    </div>
+
+                    <label class="switch">
+                        <input
+                            type="checkbox"
+                            id="aiInsightsToggle"
+                            checked
+                        >
+                        <span class="slider"></span>
+                    </label>
+
+                </div>
+
+
+                <div class="setting-row">
+
+                    <div class="setting-text">
+                        <h3>Meeting Reminders</h3>
+                        <p>Receive reminders for upcoming meetings.</p>
+                    </div>
+
+                    <label class="switch">
+                        <input
+                            type="checkbox"
+                            id="meetingReminderToggle"
+                            checked
+                        >
+                        <span class="slider"></span>
+                    </label>
+
+                </div>
+
+
+                <div class="setting-row">
+
+                    <div class="setting-text">
+                        <h3>Learning Suggestions</h3>
+                        <p>Get recommendations based on your deal history.</p>
+                    </div>
+
+                    <label class="switch">
+                        <input
+                            type="checkbox"
+                            id="learningToggle"
+                            checked
+                        >
+                        <span class="slider"></span>
+                    </label>
+
+                </div>
+
+            </div>
+
+
+            <!-- NOTIFICATIONS -->
+            <div class="settings-card">
+
+                <div class="section-header">
+                    <div>
+                        <span class="section-label">NOTIFICATIONS</span>
+                        <h2>Notifications</h2>
+                        <p>Choose what you want DealMind to notify you about.</p>
+                    </div>
+                </div>
+
+
+                <div class="setting-row">
+
+                    <div class="setting-text">
+                        <h3>Deal Risk Alerts</h3>
+                        <p>Get notified when a deal becomes high risk.</p>
+                    </div>
+
+                    <label class="switch">
+                        <input
+                            type="checkbox"
+                            id="riskAlertsToggle"
+                            checked
+                        >
+                        <span class="slider"></span>
+                    </label>
+
+                </div>
+
+
+                <div class="setting-row">
+
+                    <div class="setting-text">
+                        <h3>AI Recommendations</h3>
+                        <p>Receive new recommendations from your AI Copilot.</p>
+                    </div>
+
+                    <label class="switch">
+                        <input
+                            type="checkbox"
+                            id="recommendationToggle"
+                            checked
+                        >
+                        <span class="slider"></span>
+                    </label>
+
+                </div>
+
+            </div>
+
+
+            <!-- SECURITY -->
+            <div class="settings-card">
+
+                <div class="section-header">
+                    <div>
+                        <span class="section-label">SECURITY</span>
+                        <h2>Security</h2>
+                        <p>Manage your account security.</p>
+                    </div>
+                </div>
+
+
+                <div class="setting-row">
+
+                    <div class="setting-text">
+                        <h3>Password</h3>
+                        <p>Change your DealMind account password.</p>
+                    </div>
+
+                    <button class="secondary-button" id="changePasswordButton">
+                        Change Password
+                    </button>
+
+                </div>
+
+
+                <div class="setting-row danger-row">
+
+                    <div class="setting-text">
+                        <h3>Sign out</h3>
+                        <p>Sign out of your current DealMind session.</p>
+                    </div>
+
+                    <button class="danger-button" id="signOutButton">
+                        Sign Out
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <!-- SAVE -->
+            <div class="save-section">
+
+                <button class="secondary-button" id="resetButton">
+                    Reset Changes
+                </button>
+
+                <button class="primary-button" id="saveButton">
+                    Save Changes
+                </button>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <script src="../assets/JS/theme.js"></script>
+    <script src="../assets/JS/settings.js"></script>
+
+</body>
+</html>
