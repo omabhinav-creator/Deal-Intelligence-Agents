@@ -1,0 +1,1 @@
+"""AI components for extracting deal facts and preparing sales guidance."""

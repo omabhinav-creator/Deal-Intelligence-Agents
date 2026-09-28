@@ -1,0 +1,1 @@
+"""DealMind's AI and Hindsight integration package."""
