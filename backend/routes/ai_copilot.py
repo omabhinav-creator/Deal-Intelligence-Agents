@@ -4,7 +4,7 @@ from typing import Annotated
 
 from bson import ObjectId
 from fastapi import APIRouter, Depends, HTTPException, status
-from groq import AsyncGroq
+from groq import APIStatusError, AsyncGroq
 from motor.motor_asyncio import AsyncIOMotorDatabase
 
 from Hindsight.config import get_settings
@@ -63,7 +63,7 @@ async def generate_deal_brief(
         f"Interaction timeline:\n{interaction_notes}"
     )
 
-    groq_client = AsyncGroq(api_key=api_key)
+    groq_client = AsyncGroq(api_key=api_key, max_retries=0)
     try:
         completion = await groq_client.chat.completions.create(
             model="llama-3.3-70b-versatile",
@@ -77,6 +77,19 @@ async def generate_deal_brief(
             temperature=0.3,
             max_tokens=700,
         )
+    except APIStatusError as exc:
+        if exc.status_code == status.HTTP_429_TOO_MANY_REQUESTS:
+            retry_after = exc.response.headers.get("retry-after")
+            headers = {"Retry-After": retry_after} if retry_after else None
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail=f"Groq is rate-limited (HTTP 429): {exc.message}",
+                headers=headers,
+            ) from exc
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=f"The AI provider could not generate a deal brief (HTTP {exc.status_code}): {exc.message}",
+        ) from exc
     except Exception as exc:
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,

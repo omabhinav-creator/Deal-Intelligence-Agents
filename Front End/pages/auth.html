@@ -7,7 +7,6 @@
 
     <link rel="stylesheet" href="../assets/CSS/auth.css">
     <link rel="stylesheet" href="../assets/CSS/theme.css">
-    <link rel="stylesheet" href="../assets/CSS/ui-components.css">
 </head>
 <body>
 
@@ -76,8 +75,6 @@
                     <span>DealMind</span>
                 </div>
 
-                <p class="deal-memory-demo-notice" role="note">Your account is managed by the DealMind API.</p>
-
                 <!-- SIGN IN -->
                 <div class="auth-form active" id="signinForm">
 
@@ -87,7 +84,7 @@
                         <p>Continue where you left off.</p>
                     </div>
 
-                    <form id="signInForm" novalidate>
+                    <form id="signInForm">
 
                         <div class="input-group">
                             <label for="signinEmail">Email</label>
@@ -162,7 +159,7 @@
                         <p>Start building smarter deals today.</p>
                     </div>
 
-                    <form id="signUpForm" novalidate>
+                    <form id="signUpForm">
 
                         <div class="input-group">
                             <label for="signupName">Full name</label>
@@ -213,9 +210,9 @@
                             <input type="checkbox" id="terms" required>
                             <span>
                                 I agree to the
-                                <span>Terms of Service</span>
+                                <a href="#">Terms of Service</a>
                                 and
-                                <span>Privacy Policy</span>.
+                                <a href="#">Privacy Policy</a>.
                             </span>
                         </label>
 
@@ -261,8 +258,7 @@
     </div>
 
     <script src="../assets/JS/theme.js"></script>
-    <script src="../assets/JS/ui-components.js"></script>
-    <script src="../assets/JS/api.js"></script>
-    <script src="../assets/JS/auth.js"></script>
+    <script src="../assets/JS/api.js" defer></script>
+    <script src="../assets/JS/auth.js" defer></script>
 </body>
 </html>

@@ -191,6 +191,8 @@ def test_dashboard_metrics_use_mongodb_counts(auth_client):
         [
             {"status": "active", "risk_level": "high"},
             {"status": "won", "risk_level": "low"},
+            {"status": "pending", "risk_level": "high"},
+            {"status": "in-progress", "risk_level": "Medium"},
         ]
     )
     database["interactions"].documents.append({"deal_id": "deal-a"})
@@ -202,9 +204,9 @@ def test_dashboard_metrics_use_mongodb_counts(auth_client):
 
     assert response.status_code == 200
     assert response.json() == {
-        "deal_count": 2,
-        "open_deal_count": 1,
-        "at_risk_count": 1,
-        "closed_deal_count": 1,
+        "deal_count": 4,
+        "open_deal_count": 2,
+        "at_risk_count": 2,
+        "closed_deal_count": 2,
         "interaction_count": 1,
     }

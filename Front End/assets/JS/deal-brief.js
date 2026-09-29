@@ -3,7 +3,6 @@
   if (!panelMount) return;
 
   const triggerButtons = document.querySelectorAll("[data-deal-brief-trigger]");
-  const apiBase = document.documentElement.dataset.apiBase || "http://127.0.0.1:8000";
 
   panelMount.innerHTML = `
     <section class="deal-brief-panel" id="dealBriefPanel" aria-labelledby="dealBriefTitle" aria-live="polite" hidden>
@@ -26,31 +25,6 @@
     panel.hidden = true;
   });
 
-  function appendMemoryIdDetails(parent, memoryIds) {
-    if (!memoryIds.length) return;
-
-    const details = document.createElement("details");
-    details.className = "deal-brief-evidence__id-details";
-    const summary = document.createElement("summary");
-    summary.textContent = memoryIds.length === 1
-      ? "View memory ID"
-      : `View ${memoryIds.length} memory IDs`;
-    details.appendChild(summary);
-
-    memoryIds.forEach((memoryId, index) => {
-      const idLabel = document.createElement("span");
-      idLabel.className = "deal-brief-evidence__id-label";
-      idLabel.textContent = memoryIds.length === 1 ? "Memory ID" : `Memory ID ${index + 1}`;
-      const idValue = document.createElement("code");
-      idValue.className = "deal-brief-evidence__id-value";
-      idValue.textContent = memoryId;
-      details.appendChild(idLabel);
-      details.appendChild(idValue);
-    });
-
-    parent.appendChild(details);
-  }
-
   function addSection(parent, label, entries) {
     const usable = entries.filter((entry) => entry && entry.text);
     if (!usable.length) return;
@@ -69,9 +43,6 @@
       text.textContent = entry.text;
       item.appendChild(text);
 
-      if (entry.evidenceIds.length) {
-        appendMemoryIdDetails(item, entry.evidenceIds);
-      }
       list.appendChild(item);
     });
     section.appendChild(list);
@@ -134,13 +105,25 @@
       card.appendChild(metadata);
     }
 
-    appendMemoryIdDetails(card, [memoryId]);
     parent.appendChild(card);
   }
 
+  function renderEmptyBrief() {
+    content.replaceChildren();
+    const emptyState = document.createElement("p");
+    emptyState.className = "deal-brief-panel__empty";
+    emptyState.textContent = "No Deal Brief available yet.";
+    content.appendChild(emptyState);
+  }
+
   function renderBrief(brief) {
+    if (!brief || brief.insufficient_information) {
+      renderEmptyBrief();
+      return;
+    }
     content.replaceChildren();
 
+    addSection(content, "Customer summary", factEntries(brief.customer_summary));
     const stage = factEntries(brief.current_deal_status);
     addSection(content, "Deal stage", stage);
 
@@ -155,6 +138,10 @@
       factEntries(brief.stakeholder_concerns).concat(factEntries(brief.main_objections)),
     );
     addSection(content, "Competitors", factEntries(brief.competitors));
+    addSection(content, "Pricing discussions", factEntries(brief.pricing_discussions));
+    addSection(content, "Customer requirements", factEntries(brief.customer_requirements));
+    addSection(content, "Previous commitments", factEntries(brief.previous_commitments));
+    addSection(content, "Recent developments", factEntries(brief.recent_developments));
     addSection(
       content,
       "Decision maker / key stakeholders",
@@ -211,18 +198,13 @@
     }
 
     if (!content.children.length) {
-      const emptyState = document.createElement("p");
-      emptyState.className = "deal-brief-panel__empty";
-      emptyState.textContent = brief.insufficient_information
-        ? "There is not enough deal memory to create a brief yet."
-        : "The Deal Brief contains no fields to display.";
-      content.appendChild(emptyState);
+      renderEmptyBrief();
     }
   }
 
   async function loadBrief(button) {
-    const dealId = window.DealMindActiveDeals?.[button.dataset.dealName]?.dealId
-      || new URLSearchParams(window.location.search).get("deal_id");
+    const dealId = new URLSearchParams(window.location.search).get("deal_id")
+      || window.DealMindAPI?.getSelectedDeal()?.id;
     panel.hidden = false;
     content.replaceChildren();
 
@@ -238,21 +220,36 @@
     });
 
     try {
-      if (!dealId) throw new Error("This dashboard view has no deal ID configured.");
-      const response = await fetch(
-        `${apiBase}/api/deals/${encodeURIComponent(dealId)}/brief`,
-        { headers: { Accept: "application/json" } },
+      if (!dealId) throw new Error("Select a saved deal before requesting a Deal Brief.");
+      if (!window.DealMindAPI) throw new Error("The authenticated DealMind API client is unavailable.");
+      const brief = await window.DealMindAPI.request(
+        `/api/deals/${encodeURIComponent(dealId)}/brief`,
       );
-      if (!response.ok) throw new Error("The Deal Brief service returned an error.");
-      const brief = await response.json();
       renderBrief(brief);
-    } catch (_error) {
+    } catch (error) {
       content.replaceChildren();
-      const error = document.createElement("p");
-      error.className = "deal-brief-panel__error";
-      error.setAttribute("role", "alert");
-      error.textContent = "We couldn’t load the Deal Brief. Check the API connection and try again.";
-      content.appendChild(error);
+      const errorMessage = document.createElement("p");
+      errorMessage.className = "deal-brief-panel__error";
+      errorMessage.setAttribute("role", "alert");
+      errorMessage.textContent = error?.status === 429
+        ? `${error.message || "Deal Brief is temporarily unavailable because the AI provider is rate-limited."}${error.retryAfter ? ` Retry after ${error.retryAfter}.` : " Please try again shortly."}`
+        : error?.status === 502 || error?.kind === "backend"
+        ? error.message || "The Deal Brief service is temporarily unavailable. Please try again later."
+        : error?.status === 401
+          ? "Your session has expired. Please sign in again."
+          : error?.status === 404
+            ? "No Deal Brief is available for this deal yet."
+            : "We couldn’t load the Deal Brief. Please try again.";
+      content.appendChild(errorMessage);
+      if (error?.status === 429 && error.providerMessage) {
+        const providerDetails = document.createElement("details");
+        const summary = document.createElement("summary");
+        summary.textContent = "Provider details";
+        const providerMessage = document.createElement("p");
+        providerMessage.textContent = error.providerMessage;
+        providerDetails.append(summary, providerMessage);
+        content.appendChild(providerDetails);
+      }
     } finally {
       triggerButtons.forEach((trigger) => {
         trigger.disabled = false;

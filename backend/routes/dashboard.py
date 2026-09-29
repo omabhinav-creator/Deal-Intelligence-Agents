@@ -15,6 +15,8 @@ router = APIRouter(
     dependencies=[Depends(get_current_user)],
 )
 DatabaseDependency = Annotated[AsyncIOMotorDatabase, Depends(get_database)]
+OPEN_DEAL_STATUSES = ("open", "active", "in-progress")
+AT_RISK_LEVELS = ("high", "medium", "High", "Medium")
 
 
 @router.get("/metrics")
@@ -22,10 +24,13 @@ async def dashboard_metrics(db: DatabaseDependency) -> dict[str, int]:
     deals = db["deals"]
     interactions = db["interactions"]
     deal_count = await deals.count_documents({})
-    closed = {"won", "lost", "stalled"}
-    open_count = await deals.count_documents({"status": {"$nin": list(closed)}})
+    open_status_filter = {"status": {"$in": list(OPEN_DEAL_STATUSES)}}
+    open_count = await deals.count_documents(open_status_filter)
     at_risk_count = await deals.count_documents(
-        {"risk_level": {"$in": ["high", "medium"]}, "status": {"$nin": list(closed)}}
+        {
+            **open_status_filter,
+            "risk_level": {"$in": list(AT_RISK_LEVELS)},
+        }
     )
     interaction_count = await interactions.count_documents({})
     return {

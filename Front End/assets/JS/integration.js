@@ -12,8 +12,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const money = (value) => Number.isFinite(Number(value)) ? new Intl.NumberFormat(undefined, { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(Number(value)) : "Not recorded";
     const errorText = (error) => {
         if (error.kind === "network") return "Network error: the DealMind API is unreachable at the configured address.";
-        if (error.kind === "authentication") return error.message;
-        if (error.kind === "backend") return `Backend error: ${error.message}`;
+        if (error.kind === "authentication") return "Please sign in again to access DealMind data.";
+        if (error.status === 429 && error.endpoint?.endsWith("/autopsy")) return `Deal Autopsy is temporarily unavailable because the AI provider rate limit has been reached.${error.retryAfter ? ` Retry after: ${error.retryAfter}.` : " Please try again later."}`;
+        if (error.kind === "backend" && error.endpoint?.endsWith("/memories")) return "Hindsight is temporarily unavailable. Please try again shortly.";
+        if (error.kind === "backend") return error.message || "Deal Intelligence is temporarily unavailable. Please try again shortly.";
         return error.message || "The request could not be completed.";
     };
     function state(container, text, kind = "empty") {
@@ -39,13 +41,67 @@ document.addEventListener("DOMContentLoaded", () => {
         return deal;
     }
     function currentDeal(deals) {
-        const selected = api.getSelectedDeal();
-        return selectDeal(deals.find((deal) => deal.id === selected?.id) || deals[0] || null);
+        const requestedId = new URLSearchParams(window.location.search).get("deal_id") || api.getSelectedDeal()?.id;
+        const deal = requestedId ? deals.find((item) => item.id === requestedId) || null : null;
+        if (deal) selectDeal(deal);
+        return deal;
     }
     function dateLabel(value) {
         if (!value) return "Date not recorded";
         const date = new Date(value);
         return Number.isNaN(date.valueOf()) ? "Date not recorded" : date.toLocaleString();
+    }
+    function renderResult(container, value, heading = "") {
+        if (!container) return;
+        container.querySelectorAll(".api-result").forEach((item) => item.remove());
+        container.querySelectorAll(":scope > .api-state").forEach((item) => item.remove());
+        const result = make("section", "api-result");
+        if (heading) result.append(make("h3", "", heading));
+        const renderObject = (host, object, title = "") => {
+            const group = title ? make("section", "api-result__group") : host;
+            if (title) group.append(make("h4", "", title.replaceAll("_", " ")));
+            Object.entries(object).forEach(([key, item]) => renderValue(group, item, key));
+            if (title) host.append(group);
+        };
+        const renderValue = (host, data, key = "") => {
+            if (data === null || data === undefined || data === "") return;
+            if (/memory_id|evidence_ids/i.test(key)) {
+                (Array.isArray(data) ? data : [data]).filter(Boolean).forEach((id) => {
+                    const details = make("details", "api-result__ids");
+                    details.append(make("summary", "", "View memory ID"), make("code", "", String(id)));
+                    host.append(details);
+                });
+                return;
+            }
+            if (/_id$/i.test(key) || key === "id") {
+                const details = make("details", "api-result__ids");
+                details.append(make("summary", "", "View source ID"), make("code", "", String(data)));
+                host.append(details);
+                return;
+            }
+            if (Array.isArray(data)) {
+                if (!data.length) return;
+                const group = make("section", "api-result__group");
+                if (key) group.append(make("h4", "", key.replaceAll("_", " ")));
+                data.forEach((entry) => {
+                    const card = make("article", "api-result__item");
+                    if (typeof entry === "object" && entry !== null) renderObject(card, entry);
+                    else card.append(make("p", "", String(entry)));
+                    group.append(card);
+                });
+                host.append(group); return;
+            }
+            if (typeof data === "object") { renderObject(host, data, key); return; }
+            const field = make("p", "api-result__field");
+            if (key) field.append(make("strong", "", `${key.replaceAll("_", " ")}: `));
+            field.append(document.createTextNode(String(data)));
+            host.append(field);
+        };
+        renderValue(result, value);
+        if (!result.children.length || value?.empty === true || value?.insufficient_information === true) {
+            result.replaceChildren(make("p", "api-result__empty", "No intelligence available for this deal yet."));
+        }
+        container.append(result);
     }
     function initials(value) {
         return (value || "?").trim().split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase() || "?";
@@ -74,7 +130,14 @@ document.addEventListener("DOMContentLoaded", () => {
             risk.append(make("span", "risk-dot"), document.createTextNode(` ${displayValue(deal.risk_level)}`));
             row.append(risk);
             row.tabIndex = 0;
-            row.addEventListener("click", () => { selectDeal(deal); window.location.assign("dealmemory.html"); });
+            row.addEventListener("click", () => { selectDeal(deal); window.location.assign(`dealmemory.html?deal_id=${encodeURIComponent(deal.id)}`); });
+            row.addEventListener("keydown", (event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    selectDeal(deal);
+                    window.location.assign(`dealmemory.html?deal_id=${encodeURIComponent(deal.id)}`);
+                }
+            });
             return row;
         }
 
@@ -100,59 +163,95 @@ document.addEventListener("DOMContentLoaded", () => {
         const dealsHost = sections[0];
         const memoriesHost = sections[1];
         const aiCard = $(".ai-card");
+        const aiHeading = $("h3", aiCard);
+        const aiDescription = $("p", aiCard);
+        const briefButton = $("#briefButton");
+        if (aiHeading) aiHeading.textContent = "Loading DealMind intelligence…";
+        if (aiDescription) aiDescription.textContent = "";
+        if (briefButton) {
+            briefButton.disabled = true;
+            briefButton.textContent = "Select a deal to generate a brief";
+        }
         if (dealsHost) $$(".deal", dealsHost).forEach((item) => item.remove());
         if (memoriesHost) $$(".memory", memoriesHost).forEach((item) => item.remove());
+        metricCards.forEach((card) => {
+            const value = $(".metric-value", card); if (value) value.textContent = "—";
+            const sub = $(".metric-sub", card); if (sub) sub.textContent = "";
+        });
         try {
             const [deals, metrics] = await Promise.all([loadDeals(), api.request("/api/dashboard/metrics")]);
             const values = [metrics.open_deal_count, metrics.at_risk_count, metrics.interaction_count];
             const labels = ["Open Deals", "At-Risk Deals", "Recorded Interactions"];
+            const emptyLabels = [
+                deals.length ? "No open deals" : "No deal records yet",
+                deals.length ? "No at-risk open deals" : "No deal records yet",
+                "No interactions recorded",
+            ];
             metricCards.forEach((card, index) => {
                 const label = $(".metric-label", card);
                 const value = $(".metric-value", card);
                 const sub = $(".metric-sub", card);
                 if (label && labels[index]) label.textContent = labels[index];
                 if (value && values[index] !== undefined) value.textContent = String(values[index]);
-                if (sub) sub.textContent = values[index] ? "From your saved DealMind records" : "No records yet";
+                if (sub) sub.textContent = values[index] ? "From your saved DealMind records" : emptyLabels[index];
             });
             if (dealsHost) {
-                if (deals.length) deals.slice(0, 4).forEach((deal) => dealsHost.append(renderDealRow(deal, true)));
+                if (deals.length) deals.forEach((deal) => dealsHost.append(renderDealRow(deal, true)));
                 else state(dealsHost, "No deals yet. Your saved deals will appear here.");
             }
+            const selected = currentDeal(deals);
+            if (briefButton) {
+                briefButton.disabled = !selected;
+                briefButton.textContent = selected ? "Generate Deal Brief →" : "Select a deal to generate a brief";
+            }
             if (memoriesHost && deals.length) {
-                const selected = currentDeal(deals);
-                const result = await api.request(`/api/deals/${encodeURIComponent(selected.id)}/memories`);
-                const memories = result.memories || [];
-                if (memories.length) memories.slice(0, 4).forEach((memory) => {
-                    const item = make("div", "memory");
-                    item.append(make("div", "memory-icon", "◈"));
-                    const content = make("div", "memory-content");
-                    content.append(make("div", "memory-title", selected.company_name), make("div", "memory-description", memory.content), make("div", "memory-time", dateLabel(memory.interaction_date)));
-                    item.append(content);
-                    memoriesHost.append(item);
-                });
-                else state(memoriesHost, "No Hindsight memories have been recorded for this deal.");
+                const memoryDeals = selected ? [selected] : deals;
+                const memoryResults = await Promise.all(memoryDeals.map(async (deal) => {
+                    try {
+                        const result = await api.request(`/api/deals/${encodeURIComponent(deal.id)}/memories`);
+                        return { deal, memories: result.memories || [], error: null };
+                    } catch (error) {
+                        return { deal, memories: [], error };
+                    }
+                }));
+                const recentMemories = memoryResults.flatMap(({ deal, memories }) =>
+                    memories.map((memory) => ({ deal, memory })),
+                ).sort((left, right) => {
+                    const leftDate = Date.parse(left.memory.interaction_date || "") || 0;
+                    const rightDate = Date.parse(right.memory.interaction_date || "") || 0;
+                    return rightDate - leftDate;
+                }).slice(0, 4);
+                if (recentMemories.length) {
+                    recentMemories.forEach(({ deal, memory }) => {
+                        const item = make("div", "memory");
+                        item.append(make("div", "memory-icon", "◈"));
+                        const content = make("div", "memory-content");
+                        content.append(make("div", "memory-title", deal.company_name), make("div", "memory-description", memory.content), make("div", "memory-time", dateLabel(memory.interaction_date)));
+                        item.append(content);
+                        memoriesHost.append(item);
+                    });
+                } else if (memoryResults.every((result) => result.error)) {
+                    state(memoriesHost, errorText(memoryResults[0].error), "error");
+                } else {
+                    state(memoriesHost, selected
+                        ? "No Hindsight memories have been recorded for this deal."
+                        : "No Hindsight memories have been recorded for these deals.");
+                }
             } else if (memoriesHost) state(memoriesHost, "No deal memory is available yet.");
             if (aiCard) {
                 const heading = $("h3", aiCard);
                 const description = $("p", aiCard);
-                if (heading) heading.textContent = deals.length ? `${deals.length} saved deal${deals.length === 1 ? "" : "s"} in your workspace.` : "Deal intelligence starts with recorded deal evidence.";
-                if (description) description.textContent = deals.length ? "Recommendations and risk signals appear when Hindsight has deal-specific evidence." : "Add deal and interaction records to build Hindsight memory and evidence-backed guidance.";
+                if (heading) heading.textContent = selected ? `Deal intelligence for ${selected.company_name}.` : `${deals.length} saved deal${deals.length === 1 ? "" : "s"} in your workspace.`;
+                if (description) description.textContent = selected ? "Recommendations and risk signals use retained Hindsight evidence for this deal." : "Select a saved deal to view its evidence-backed intelligence.";
             }
-            const briefButton = $("#briefButton");
-            if (briefButton) briefButton.onclick = async () => {
-                const deal = currentDeal(deals);
-                if (!deal) { state(aiCard, "No deal is available to brief yet."); return; }
-                briefButton.disabled = true;
-                state(aiCard, "Generating a brief from this deal's Hindsight evidence…", "loading");
-                try { state(aiCard, JSON.stringify(await api.request(`/api/deals/${encodeURIComponent(deal.id)}/brief`), null, 2)); }
-                catch (error) { state(aiCard, errorText(error), "error"); }
-                finally { briefButton.disabled = false; }
-            };
         } catch (error) {
             state(dealsHost, errorText(error), "error");
             state(memoriesHost, errorText(error), "error");
+            if (aiHeading) aiHeading.textContent = "Deal Intelligence is temporarily unavailable.";
+            if (aiDescription) aiDescription.textContent = "Check your connection and try again.";
         }
     }
+
 
     function openDeal(deal) {
         selectDeal(deal);
@@ -164,7 +263,11 @@ document.addEventListener("DOMContentLoaded", () => {
         $("#modalStage").textContent = displayValue(deal.stage);
         $("#modalRisk").textContent = displayValue(deal.risk_level);
         $("#modalCompetitor").textContent = "Not recorded";
+        const modalLogo = $(".deal-modal .company-logo");
+        if (modalLogo) modalLogo.textContent = initials(deal.company_name);
         $("#modalMemory").textContent = "Loading deal-scoped Hindsight memory…";
+        const openLink = $("#modalOpenDeal");
+        if (openLink) openLink.href = `dealmemory.html?deal_id=${encodeURIComponent(deal.id)}`;
         modal.classList.add("show");
         api.request(`/api/deals/${encodeURIComponent(deal.id)}/memories`).then((result) => {
             $("#modalMemory").textContent = result.memories?.[0]?.content || "No Hindsight memory has been recorded for this deal.";
@@ -177,6 +280,13 @@ document.addEventListener("DOMContentLoaded", () => {
         const search = $("#dealSearch");
         if (!table) return;
         $$(".deal-row", table).forEach((row) => row.remove());
+        const summaryCards = $$(".summary-card");
+        summaryCards.forEach((card) => { const metric = $("strong", card); if (metric) metric.textContent = "—"; });
+        const insight = $(".ai-insight");
+        const insightTitle = $("h3", insight);
+        const insightText = $("p", insight);
+        if (insightTitle) insightTitle.textContent = "Loading saved deals…";
+        if (insightText) insightText.textContent = "";
         const setFilter = () => {
             const query = (search?.value || "").trim().toLowerCase();
             const filter = $(".filter-button.active")?.dataset.filter || "all";
@@ -197,6 +307,7 @@ document.addEventListener("DOMContentLoaded", () => {
         };
         try {
             const deals = await loadDeals();
+            table.hidden = false;
             const toolbar = $(".deals-toolbar");
             if (toolbar && !$("#newDealForm")) {
                 const toggle = make("button", "primary-btn", "Add deal");
@@ -222,12 +333,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 });
                 toolbar.append(toggle, form);
             }
-            const summaryCards = $$(".summary-card");
             const riskCount = deals.filter((deal) => ["high", "medium"].includes((deal.risk_level || "").toLowerCase()) && !["won", "lost", "stalled"].includes((deal.status || "").toLowerCase())).length;
             const pipelineValue = deals.reduce((total, deal) => total + (Number(deal.value) || 0), 0);
-            const insight = $(".ai-insight");
-            const insightTitle = $("h3", insight);
-            const insightText = $("p", insight);
             if (insightTitle) insightTitle.textContent = riskCount ? `${riskCount} saved deal${riskCount === 1 ? "" : "s"} ${riskCount === 1 ? "has" : "have"} elevated risk.` : "No saved deal has elevated risk.";
             if (insightText) insightText.textContent = "Risk counts use the stored deal risk field. Memory-based analysis requires retained evidence for the selected deal.";
             [money(pipelineValue), String(deals.length), String(riskCount), "—"].forEach((value, index) => {
@@ -243,15 +350,57 @@ document.addEventListener("DOMContentLoaded", () => {
                 $$(".filter-button").forEach((item) => item.classList.toggle("active", item === button));
                 setFilter();
             }));
-            $("#analyzeButton")?.addEventListener("click", () => {
+            $("#analyzeButton")?.addEventListener("click", async (event) => {
+                const button = event.currentTarget;
                 const insight = $(".ai-content");
-                state(insight, deals.length ? "Risk analysis requires recorded memory for each selected deal." : "No deals are available to analyze yet.");
+                button.disabled = true;
+                if (insight) {
+                    insight.querySelectorAll(".api-state, .risk-memory-list").forEach((node) => node.remove());
+                    state(insight, "Checking each saved deal's retained Hindsight memories…", "loading");
+                }
+                try {
+                    const scans = await Promise.all(deals.map(async (deal) => ({
+                        deal,
+                        memories: (await api.request(`/api/deals/${encodeURIComponent(deal.id)}/memories`)).memories || [],
+                    })));
+                    insight?.querySelectorAll(".api-state").forEach((node) => node.remove());
+                    const findings = scans.map(({ deal, memories }) => ({
+                        deal,
+                        memories: memories.filter((memory) => /risk|objection|concern|unresolved/.test(memory.memory_type || "")),
+                    })).filter((scan) => scan.memories.length);
+                    const title = $("h3", insight);
+                    const summary = $("p", insight);
+                    if (title) title.textContent = findings.length ? `${findings.length} deal${findings.length === 1 ? "" : "s"} have recorded risk-related evidence.` : "No risk-related memories were found.";
+                    if (summary) summary.textContent = findings.length ? "Items below are retained Hindsight memories, not generated risk predictions." : "This does not indicate a risk-free deal; no matching memories were available.";
+                    if (!findings.length) { state(insight, "No retained risk, objection, concern, or unresolved-issue memories were found."); return; }
+                    const list = make("div", "risk-memory-list");
+                    findings.forEach(({ deal, memories }) => {
+                        const card = make("article", "risk-memory-card");
+                        card.append(make("h4", "", deal.company_name));
+                        memories.forEach((memory) => {
+                            card.append(make("p", "", memory.content));
+                            if (memory.memory_id) { const details = make("details"); details.append(make("summary", "", "View memory ID"), make("code", "", memory.memory_id)); card.append(details); }
+                        });
+                        list.append(card);
+                    });
+                    insight.append(list);
+                } catch (error) {
+                    state(insight, errorText(error), "error");
+                } finally { button.disabled = false; }
             });
             setFilter();
-        } catch (error) { state(empty, errorText(error), "error"); empty?.classList.add("visible"); }
+        } catch (error) {
+            state(empty, errorText(error), "error"); empty?.classList.add("visible");
+            if (insightTitle) insightTitle.textContent = "Deal Intelligence is temporarily unavailable.";
+            if (insightText) insightText.textContent = "Check your connection and try again.";
+            $("#analyzeButton")?.addEventListener("click", () => state($(".ai-content"), errorText(error), "error"));
+        }
 
         $("#modalClose")?.addEventListener("click", () => $("#dealModal")?.classList.remove("show"));
         $("#dealModal")?.addEventListener("click", (event) => { if (event.target === $("#dealModal")) $("#dealModal").classList.remove("show"); });
+        document.addEventListener("keydown", (event) => {
+            if (event.key === "Escape") $("#dealModal")?.classList.remove("show");
+        });
         const modalContent = $(".deal-modal");
         if (modalContent && !$(".deal-actions", modalContent)) {
             const actions = make("section", "deal-actions");
@@ -273,7 +422,6 @@ document.addEventListener("DOMContentLoaded", () => {
             interactionLabel.append(notes);
             actions.append(interactionLabel, saveInteraction, outcome, saveOutcome, feedback);
             const primary = $(".modal-primary", modalContent);
-            primary?.addEventListener("click", () => window.location.assign("aicopilot.html"));
             primary?.before(actions);
             saveInteraction.addEventListener("click", async () => {
                 const deal = api.getSelectedDeal();
@@ -283,6 +431,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     const result = await api.request(`/api/deals/${encodeURIComponent(deal.id)}/interactions`, { method: "POST", body: JSON.stringify({ notes: notes.value.trim(), interaction_date: new Date().toISOString(), source: "DealMind web app", company: deal.company_name }) });
                     feedback.textContent = `Interaction retained. ${result.retained_memory_count ?? 0} memory record(s) added.`;
                     notes.value = "";
+                    const recalled = await api.request(`/api/deals/${encodeURIComponent(deal.id)}/memories`);
+                    $("#modalMemory").textContent = recalled.memories?.[0]?.content || "The interaction was retained; no recallable memory is available yet.";
                 } catch (error) { feedback.textContent = errorText(error); }
                 finally { saveInteraction.disabled = false; }
             });
@@ -309,7 +459,11 @@ document.addEventListener("DOMContentLoaded", () => {
         const tags = make("div", "memory-tags");
         if (memory.stakeholder_name) tags.append(make("span", "", `Stakeholder: ${memory.stakeholder_name}`));
         if (memory.interaction_source) tags.append(make("span", "", `Source: ${memory.interaction_source}`));
-        tags.append(make("span", "", `Memory ID: ${memory.memory_id}`));
+        if (memory.memory_id) {
+            const ids = make("details", "memory-id-details");
+            ids.append(make("summary", "", "View memory ID"), make("code", "", memory.memory_id));
+            tags.append(ids);
+        }
         content.append(tags); item.append(content); return item;
     }
 
@@ -317,29 +471,66 @@ document.addEventListener("DOMContentLoaded", () => {
         const timeline = $(".timeline");
         if (!timeline) return;
         timeline.replaceChildren();
-        const memoryLayout = $(".memory-layout");
-        if (memoryLayout && !$(".memory-pipeline", memoryLayout)) {
-            const pipeline = make("ol", "memory-pipeline");
-            ["Retain interaction", "Recall deal memory", "Personalized intelligence", "Record outcome", "Learn from evidence", "Improve future guidance"].forEach((label, index) => {
-                const item = make("li", "", label);
-                item.dataset.step = String(index + 1);
-                pipeline.append(item);
-            });
-            memoryLayout.prepend(pipeline);
-        }
+        const dealHeader = $(".deal-header-card");
+        const memoryStats = $(".memory-stats");
+        const emptyState = $("#dealSelectionEmpty");
+        if (emptyState) emptyState.hidden = true;
+        const headerTitle = $(".deal-header-card h2");
+        const headerMeta = $(".deal-header-card p");
+        const headerValue = $(".deal-value strong");
+        const headerLogo = $(".deal-header-card .company-logo");
+        const stageBadge = $(".deal-header-card .stage-badge");
+        const riskBadge = $(".deal-header-card .risk-badge");
+        const briefButtons = $$('[data-deal-brief-trigger]');
+        briefButtons.forEach((button) => { button.disabled = true; });
+        if (headerTitle) headerTitle.textContent = "Loading selected deal…";
+        if (headerMeta) headerMeta.textContent = "Loading current deal details";
+        if (headerValue) headerValue.textContent = "—";
+        if (headerLogo) headerLogo.textContent = "…";
+        if (stageBadge) stageBadge.textContent = "Loading";
+        if (riskBadge) riskBadge.textContent = "Loading";
+        $$(".memory-stats .stat-card strong").forEach((node) => { node.textContent = "—"; });
+        $$(".category-btn strong").forEach((node) => { node.textContent = "—"; });
+        $$(".key-item strong").forEach((node) => { node.textContent = "Not recorded in deal memory"; });
+        const insightSummary = $(".insight-card p");
+        if (insightSummary) insightSummary.textContent = "Loading deal-scoped Hindsight evidence…";
+        $$(".insight-point").forEach((item) => item.remove());
+        state(timeline, "Loading deal-scoped Hindsight memories…", "loading");
         try {
             const deals = await loadDeals();
             const deal = currentDeal(deals);
-            if (!deal) { state(timeline, "No deal is selected. Add a saved deal to begin building Hindsight memory."); return; }
+            if (!deal) {
+                if (headerTitle) headerTitle.textContent = "No deal selected";
+                if (headerMeta) headerMeta.textContent = "Choose a saved deal from Deals to view its memory.";
+                if (headerValue) headerValue.textContent = "—";
+                if (headerLogo) headerLogo.textContent = "?";
+                if (stageBadge) stageBadge.textContent = "No deal selected";
+                if (riskBadge) riskBadge.textContent = "Not available";
+                $$(".memory-stats .stat-card strong").forEach((node) => { node.textContent = "0"; });
+                if (dealHeader) dealHeader.hidden = true;
+                if (memoryStats) memoryStats.hidden = true;
+                if (emptyState) { emptyState.hidden = false; emptyState.textContent = "Choose a saved deal from Deals to view its memory."; }
+                state(timeline, "No deal is selected.");
+                return;
+            }
+            briefButtons.forEach((button) => { button.disabled = false; });
             const data = await api.request(`/api/deals/${encodeURIComponent(deal.id)}/memories`);
             const title = $(".deal-header-card h2");
             const meta = $(".deal-header-card p");
             const value = $(".deal-value strong");
+            const logo = $(".deal-header-card .company-logo");
             if (title) title.textContent = deal.company_name;
             if (meta) meta.textContent = `${deal.stage} · ${deal.status} · ${deal.risk_level} risk`;
             if (value) value.textContent = money(deal.value);
+            if (logo) logo.textContent = initials(deal.company_name);
+            const stageBadge = $(".deal-header-card .stage-badge");
+            const riskBadge = $(".deal-header-card .risk-badge");
+            if (stageBadge) { stageBadge.textContent = displayValue(deal.stage); stageBadge.className = `stage-badge ${statusClass(deal.stage)}`; }
+            if (riskBadge) { riskBadge.textContent = `${displayValue(deal.risk_level)} Risk`; riskBadge.className = `risk-badge ${statusClass(deal.risk_level)}`; }
             const memories = data.memories || [];
-            if (!memories.length) state(timeline, "No Hindsight memories have been retained for this deal yet.");
+            if (emptyState) emptyState.hidden = true;
+            timeline.replaceChildren();
+            if (!memories.length) state(timeline, "No memories recorded for this deal yet.");
             memories.forEach((memory) => timeline.append(renderMemory(memory)));
             const counts = {
                 interaction: memories.length,
@@ -361,17 +552,28 @@ document.addEventListener("DOMContentLoaded", () => {
                     });
                 };
             });
-            $("#filterBtn")?.addEventListener("click", () => $$(".timeline-item", timeline).forEach((item) => { item.hidden = false; }));
+            $("#filterBtn")?.addEventListener("click", () => {
+                const types = [...new Set(memories.map((memory) => memory.memory_type).filter(Boolean))];
+                const options = [{ value: "all", label: "All memories" }, ...types.map((type) => ({ value: type, label: type.replaceAll("_", " ") }))];
+                window.DealMindUI.showSelector({
+                    title: "Filter memory",
+                    message: "Choose a recorded category for this deal.",
+                    selectedValue: "all",
+                    options,
+                    onSelect(type) { $$(".timeline-item", timeline).forEach((item) => { item.hidden = type !== "all" && !item.classList.contains(`memory-type-${statusClass(type)}`) && $(".memory-type", item)?.textContent !== type.replaceAll("_", " "); }); },
+                });
+            });
             $(".insight-card p")?.replaceChildren(document.createTextNode(memories.length ? `${memories.length} deal-scoped memories recalled from Hindsight.` : "No deal-specific evidence has been recalled yet."));
             $$(".insight-point").forEach((item) => item.remove());
-            const briefButton = $("#briefBtn");
-            if (briefButton) briefButton.onclick = async () => {
-                const card = $(".insight-card"); state(card, "Generating a brief from deal-scoped Hindsight evidence…", "loading");
-                try { const brief = await api.request(`/api/deals/${encodeURIComponent(deal.id)}/brief`); state(card, JSON.stringify(brief, null, 2)); }
-                catch (error) { state(card, errorText(error), "error"); }
-            };
-            $$(".key-item strong").forEach((node) => { node.textContent = "Not recorded in deal memory"; });
-        } catch (error) { state(timeline, errorText(error), "error"); }
+            const firstMemory = (pattern) => memories.find((memory) => pattern.test(memory.memory_type || ""))?.content;
+            const keyValues = [firstMemory(/stakeholder/), firstMemory(/competitor/), firstMemory(/concern|objection|risk/)].map((value) => value || "Not recorded in deal memory");
+            $$(".key-item strong").forEach((node, index) => { node.textContent = keyValues[index] || "Not recorded in deal memory"; });
+        } catch (error) {
+            if (dealHeader) dealHeader.hidden = true;
+            if (memoryStats) memoryStats.hidden = true;
+            if (emptyState) { emptyState.hidden = false; emptyState.textContent = errorText(error); }
+            state(timeline, errorText(error), "error");
+        }
     }
 
     function renderChatMessage(text, type = "ai") {
@@ -379,7 +581,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const item = make("div", `message ${type === "ai" ? "ai-message" : "user-message"}`);
         if (type === "ai") item.append(make("div", "message-avatar", "H"));
         const content = make("div", "message-content");
-        content.append(make("span", "message-name", type === "ai" ? "DealMind · evidence" : "You"), make("pre", "", text));
+        content.append(make("span", "message-name", type === "ai" ? "DealMind · evidence" : "You"), make("p", "", text));
         item.append(content); area?.append(item); if (area) area.scrollTop = area.scrollHeight;
     }
     async function renderCopilot() {
@@ -389,6 +591,11 @@ document.addEventListener("DOMContentLoaded", () => {
         const selectorHost = $(".deal-selector-card");
         const select = document.createElement("select");
         select.setAttribute("aria-label", "Select a deal");
+        const initialName = $("#selectedDealName"); if (initialName) initialName.textContent = "No deal selected";
+        const initialLogo = $("#selectedDealLogo"); if (initialLogo) initialLogo.textContent = "?";
+        ["#selectedDealValue span", "#selectedDealStage span", "#selectedDealRisk span"].forEach((selector) => {
+            const node = $(selector); if (node) node.textContent = "Not available";
+        });
         const input = $("#chatInput");
         const send = $("#sendBtn");
         let deals = [];
@@ -396,23 +603,61 @@ document.addEventListener("DOMContentLoaded", () => {
         try {
             deals = await loadDeals();
             deal = currentDeal(deals);
+            const placeholder = document.createElement("option");
+            placeholder.value = ""; placeholder.textContent = "Select a saved deal"; placeholder.disabled = true; placeholder.selected = !deal;
+            select.append(placeholder);
             deals.forEach((item) => { const option = document.createElement("option"); option.value = item.id; option.textContent = item.company_name; option.selected = item.id === deal?.id; select.append(option); });
             if (selectorHost) {
                 $("#changeDealBtn")?.replaceWith(select);
                 if (!$("#changeDealBtn")) selectorHost.append(select);
             }
             const title = $(".deal-selector-card h2");
+            const contextGrid = $(".context-grid");
+            const updateContext = async () => {
+                if (!contextGrid) return;
+                contextGrid.replaceChildren();
+                if (!deal) { state(contextGrid, "Select a deal to load its recorded context."); return; }
+                const requestedDealId = deal.id;
+                try {
+                    const recalled = await api.request(`/api/deals/${encodeURIComponent(requestedDealId)}/memories`);
+                    if (deal?.id !== requestedDealId) return;
+                    const categories = [
+                        ["Stakeholder", /stakeholder/], ["Competitor", /competitor/],
+                        ["Risk or objection", /risk|objection|concern/], ["Requirements and actions", /requirement|commitment|request|sales_action/],
+                    ];
+                    categories.forEach(([label, pattern]) => {
+                        const memory = recalled.memories?.find((item) => pattern.test(item.memory_type || ""));
+                        const card = make("div", "context-card");
+                        const detail = make("div");
+                        detail.append(make("span", "", label), make("strong", "", memory?.content || "Not recorded"));
+                        if (memory?.memory_id) { const ids = make("details"); ids.append(make("summary", "", "View memory ID"), make("code", "", memory.memory_id)); detail.append(ids); }
+                        card.append(detail); contextGrid.append(card);
+                    });
+                } catch (error) { state(contextGrid, errorText(error), "error"); }
+            };
             const setDeal = (chosen) => {
+                if (!chosen) return;
                 deal = selectDeal(chosen);
                 if (title) title.textContent = deal.company_name;
                 const heading = $(".chat-header p"); if (heading) heading.textContent = `Evidence and intelligence for ${deal.company_name}`;
-                $$(".deal-meta span", selectorHost).forEach((item, index) => { item.textContent = [money(deal.value), deal.stage, `${deal.risk_level} risk`][index] || ""; });
+                const valueNode = $("#selectedDealValue span"); if (valueNode) valueNode.textContent = money(deal.value);
+                const stageNode = $("#selectedDealStage span"); if (stageNode) stageNode.textContent = deal.stage || "Not recorded";
+                const riskNode = $("#selectedDealRisk span"); if (riskNode) riskNode.textContent = `${deal.risk_level || "Not recorded"} risk`;
+                const riskHost = $("#selectedDealRisk"); if (riskHost) riskHost.className = `${statusClass(deal.risk_level)}-risk`;
+                const logo = $("#selectedDealLogo"); if (logo) logo.textContent = initials(deal.company_name);
+                $$(".message", area).forEach((message) => message.remove());
+                renderChatMessage(`Selected ${deal.company_name}. New requests are scoped to this deal.`);
+                updateContext();
             };
             if (deal) setDeal(deal);
+            else {
+                if (title) title.textContent = "No deal selected";
+                $$(".deal-meta span", selectorHost).forEach((item) => { item.textContent = "Not available"; });
+                updateContext();
+            }
             select.addEventListener("change", () => setDeal(deals.find((item) => item.id === select.value)));
-            if (!deal) { state(area, "No deal is available. Add a deal before asking DealMind for intelligence."); return; }
-            renderChatMessage("Deal-specific Hindsight evidence is available to query. Briefs, changes, recommendations, and explanations use the selected deal only.");
-            const promptPanel = make("div", "quick-prompts");
+            if (!deal) renderChatMessage("Select a saved deal to request its evidence-backed intelligence.");
+            const promptPanel = make("div", "quick-prompts"); promptPanel.id = "quickPrompts";
             ["Give me a deal brief", "What changed?", "What should I do next?", "What risks are in memory?"].forEach((prompt) => {
                 const button = make("button", "prompt-btn", prompt); button.type = "button";
                 button.addEventListener("click", () => { if (input) input.value = prompt; send?.click(); });
@@ -430,21 +675,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 const similarButton = make("button", "text-action", "Compare similar historical deals");
                 similarButton.id = "similarActionBtn"; similarButton.type = "button"; sidebar.append(similarButton);
             }
-            const contextGrid = $(".context-grid");
-            if (contextGrid) {
-                contextGrid.replaceChildren();
-                const recalled = await api.request(`/api/deals/${encodeURIComponent(deal.id)}/memories`);
-                const categories = [
-                    ["Stakeholder", /stakeholder/], ["Competitor", /competitor/],
-                    ["Risk or objection", /risk|objection|concern/], ["Requirements and actions", /requirement|commitment|request|sales_action/],
-                ];
-                categories.forEach(([label, pattern]) => {
-                    const memory = recalled.memories?.find((item) => pattern.test(item.memory_type || ""));
-                    const card = make("div", "context-card");
-                    const detail = make("div"); detail.append(make("span", "", label), make("strong", "", memory?.content || "Not recorded"), make("small", "", memory ? `Memory ${memory.memory_id}` : "No supporting evidence"));
-                    card.append(detail); contextGrid.append(card);
-                });
-            }
         } catch (error) { state(area, errorText(error), "error"); return; }
 
         const requestAnswer = async (question) => {
@@ -459,17 +689,33 @@ document.addEventListener("DOMContentLoaded", () => {
             else if (q.includes("why")) {
                 const recommendations = await api.request(`/api/deals/${encodeURIComponent(deal.id)}/recommendations`);
                 const action = recommendations.recommendations?.[0]?.action;
-                if (!action) { renderChatMessage(JSON.stringify(recommendations, null, 2)); return; }
+                if (!action) { renderChatMessage("No evidence-backed recommendation is available for this deal yet."); return; }
                 path = `/api/deals/${encodeURIComponent(deal.id)}/why`; method = "POST"; body = JSON.stringify({ action });
             } else if (q.includes("next") || q.includes("action") || q.includes("recommend")) path = `/api/deals/${encodeURIComponent(deal.id)}/recommendations`;
             else {
                 const data = await api.request(`/api/deals/${encodeURIComponent(deal.id)}/memories`);
                 const terms = q.split(/\W+/).filter((term) => term.length > 2);
                 const matches = (data.memories || []).filter((memory) => terms.some((term) => memory.content.toLowerCase().includes(term)));
-                renderChatMessage(JSON.stringify({ deal_id: deal.id, memories: matches, empty: !matches.length }, null, 2)); return;
+                if (!matches.length) { renderChatMessage("No retained memory matched that question for the selected deal."); return; }
+                matches.forEach((memory) => {
+                    const message = make("div", "message ai-message");
+                    message.append(make("div", "message-avatar", "H"));
+                    const detail = make("div", "message-content");
+                    detail.append(make("span", "message-name", "DealMind · Hindsight evidence"), make("p", "", memory.content));
+                    if (memory.interaction_date) detail.append(make("small", "", dateLabel(memory.interaction_date)));
+                    if (memory.interaction_source) detail.append(make("small", "", `Source: ${memory.interaction_source}`));
+                    if (memory.memory_id) { const ids = make("details"); ids.append(make("summary", "", "View memory ID"), make("code", "", memory.memory_id)); detail.append(ids); }
+                    message.append(detail); area.append(message);
+                });
+                return;
             }
             const result = await api.request(path, { method, body });
-            renderChatMessage(JSON.stringify(result, null, 2));
+            const message = make("div", "message ai-message");
+            message.append(make("div", "message-avatar", "H"));
+            const resultHost = make("div", "message-content");
+            resultHost.append(make("span", "message-name", "DealMind · result"));
+            renderResult(resultHost, result);
+            message.append(resultHost); area.append(message);
         };
         const sendQuestion = async () => {
             const question = input?.value.trim(); if (!question) return;
@@ -505,70 +751,117 @@ document.addEventListener("DOMContentLoaded", () => {
         const autopsyGrid = $(".autopsy-grid");
         const lessonsGrid = $(".lessons-grid");
         if (!patternList) return;
+        const bindOnce = (selector, key, handler) => {
+            const button = $(selector);
+            if (button && !button.dataset[key]) { button.dataset[key] = "true"; button.addEventListener("click", handler); }
+        };
+        bindOnce("#analyzeBtn", "refreshBound", async () => { await renderLearning(); });
+        bindOnce("#patternsBtn", "scrollBound", () => patternList.scrollIntoView({ behavior: "smooth" }));
+        bindOnce("#autopsyBtn", "scrollBound", () => autopsyGrid?.scrollIntoView({ behavior: "smooth" }));
         patternList.replaceChildren(); similarList?.replaceChildren(); autopsyGrid?.replaceChildren();
         lessonsGrid?.replaceChildren();
+        $$(".learning-stats .stat-card strong").forEach((node) => { node.textContent = "—"; });
         try {
             const data = await api.request("/api/learning");
             const patterns = data.patterns?.patterns || [];
             const history = data.history || [];
+            const noInsights = data.empty === true || (!patterns.length && !history.length);
+            const emptyMessage = noInsights ? "No learning insights available yet." : "Not enough historical data yet.";
             if (patterns.length) patterns.forEach((pattern, index) => {
                 const item = make("article", "pattern-item");
                 item.append(make("div", "pattern-number", String(index + 1).padStart(2, "0")));
                 const info = make("div", "pattern-info");
                 info.append(make("h4", "", pattern.description), make("p", "", pattern.interpretation || "Observed association; this does not establish causality."));
-                info.append(make("div", "pattern-meta", `${pattern.supporting_deal_ids?.length || 0} supporting deal(s) · ${pattern.evidence?.length || 0} evidence item(s)`));
+                info.append(make("div", "pattern-meta", `${pattern.occurrence_count || 1} occurrence(s) · ${pattern.supporting_deal_ids?.length || 0} supporting deal(s) · ${pattern.evidence?.length || 0} evidence item(s)`));
+                (pattern.evidence || []).forEach((evidence) => {
+                    if (evidence.content) info.append(make("p", "pattern-evidence", evidence.content));
+                    if (evidence.memory_id) { const ids = make("details"); ids.append(make("summary", "", "View memory ID"), make("code", "", evidence.memory_id)); info.append(ids); }
+                });
+                if (pattern.uncertainty) info.append(make("p", "", `Uncertainty: ${pattern.uncertainty}`));
                 item.append(info); patternList.append(item);
             });
-            else state(patternList, "Not enough historical data yet.");
+            else state(patternList, emptyMessage);
             const lessonMemories = history.filter((item) => item.memory_type === "lesson_learned");
             const outcomeMemories = history.filter((item) => item.memory_type === "deal_outcome");
             const statCards = $$(".learning-stats .stat-card");
-            [patterns.length, 0, lessonMemories.length, new Set(history.map((item) => item.deal_id)).size].forEach((count, index) => { const value = $("strong", statCards[index]); if (value) value.textContent = String(count); });
+            const setStat = (index, value) => {
+                const node = $("strong", statCards[index]);
+                if (node) node.textContent = String(value);
+            };
+            setStat(0, patterns.length);
+            setStat(1, "—");
+            setStat(2, lessonMemories.length);
+            setStat(3, new Set(history.map((item) => item.deal_id).filter(Boolean)).size);
             const lessonsSection = $(".lessons-section");
             const lessonsCaption = $(".lessons-section .section-header p");
             if (lessonsCaption) lessonsCaption.textContent = "Retained outcome lessons with their source deal and Hindsight memory.";
             if (lessonsGrid && lessonMemories.length) lessonMemories.forEach((item) => {
                 const lesson = make("article", "lesson-card");
                 const detail = make("div");
-                detail.append(make("span", "", `Deal ${item.deal_id}`), make("h4", "", item.content), make("p", "", `Memory ${item.memory_id} · ${dateLabel(item.interaction_date)}`));
+                detail.append(make("h4", "", item.content));
+                if (item.interaction_date) detail.append(make("p", "", dateLabel(item.interaction_date)));
+                if (item.deal_id || item.memory_id) { const ids = make("details"); ids.append(make("summary", "", "View source IDs")); if (item.deal_id) ids.append(make("code", "", `Deal ID: ${item.deal_id}`)); if (item.memory_id) ids.append(make("code", "", `Memory ID: ${item.memory_id}`)); detail.append(ids); }
                 lesson.append(detail); lessonsGrid.append(lesson);
             });
-            else if (lessonsGrid) state(lessonsGrid, "Not enough historical data yet.");
-            const deals = await loadDeals(); const deal = currentDeal(deals);
+            else if (lessonsGrid) state(lessonsGrid, emptyMessage);
+            const deals = await loadDeals().catch(() => []);
             const similarCaption = $(".similar-card .section-header p");
+            const deal = currentDeal(deals);
             if (similarCaption) similarCaption.textContent = deal ? `Historical matches for ${deal.company_name}, based on Hindsight evidence.` : "Not enough historical data yet.";
             const renderSimilar = async () => {
-                if (!deal) { state(similarList, "Select a deal to compare against evidence-backed historical deals."); return; }
+                if (!deal) { setStat(1, 0); state(similarList, "Select a deal to compare against evidence-backed historical deals."); return; }
                 state(similarList, "Comparing recalled Hindsight evidence…", "loading");
                 try {
                     const result = await api.request(`/api/deals/${encodeURIComponent(deal.id)}/similar`);
                     similarList.replaceChildren();
-                    if (statCards[1]) $("strong", statCards[1]).textContent = String(result.similar_deals?.length || 0);
+                    setStat(1, result.similar_deals?.length || 0);
                     if (!result.similar_deals?.length) { state(similarList, "Not enough historical data yet."); return; }
-                    result.similar_deals.forEach((match) => { const item = make("article", "similar-deal"); item.append(make("div", "similar-info", `${match.deal_id}: ${match.similarity_explanation}`), make("small", "", `${match.evidence?.length || 0} supporting historical evidence item(s)`)); similarList.append(item); });
+                    const dealNames = new Map(deals.map((record) => [record.id, record.company_name]));
+                    result.similar_deals.forEach((match) => {
+                        const item = make("article", "similar-deal");
+                        item.append(make("h4", "similar-info", match.company_name || dealNames.get(match.historical_deal_id) || "Historical deal"));
+                        if (match.similarity_reason) item.append(make("p", "", match.similarity_reason));
+                        (match.matching_characteristics || []).forEach((characteristic) => {
+                            item.append(make("p", "", characteristic.characteristic));
+                            const ids = [...(characteristic.current_memory_ids || []), ...(characteristic.historical_memory_ids || [])];
+                            if (ids.length) { const details = make("details"); details.append(make("summary", "", "View supporting memory IDs")); ids.forEach((id) => details.append(make("code", "", id))); item.append(details); }
+                        });
+                        [...(match.current_evidence || []), ...(match.historical_evidence || [])].forEach((evidence) => {
+                            if (evidence.content) item.append(make("p", "similar-evidence", evidence.content));
+                            if (evidence.memory_id) { const details = make("details"); details.append(make("summary", "", "View memory ID"), make("code", "", evidence.memory_id)); item.append(details); }
+                        });
+                        if (match.historical_outcome?.statement) item.append(make("p", "", `Historical outcome: ${match.historical_outcome.statement}`));
+                        if (match.useful_lesson?.statement) item.append(make("p", "", `Lesson: ${match.useful_lesson.statement}`));
+                        if (match.historical_deal_id) { const details = make("details"); details.append(make("summary", "", "View deal ID"), make("code", "", match.historical_deal_id)); item.append(details); }
+                        similarList.append(item);
+                    });
                 } catch (error) { state(similarList, errorText(error), "error"); }
             };
-            if (similarList) await renderSimilar();
-            $("#similarBtn")?.addEventListener("click", renderSimilar);
+            bindOnce("#similarBtn", "refreshBound", renderSimilar);
+            if (similarList) {
+                setStat(1, deal ? "—" : 0);
+                state(similarList, deal
+                    ? "Choose Similar Deals to compare against historical evidence."
+                    : "Select a deal to compare against evidence-backed historical deals.");
+            }
             const outcomes = new Map();
             outcomeMemories.forEach((item) => { if (item.outcome && !outcomes.has(item.deal_id)) outcomes.set(item.deal_id, item); });
             if (autopsyGrid && outcomes.size) outcomes.forEach((item) => {
                 const card = make("article", "autopsy-card");
-                card.append(make("h4", "", item.deal_id), make("span", `outcome ${statusClass(item.outcome)}`, item.outcome), make("p", "", item.content));
+                const company = deals.find((record) => record.id === item.deal_id)?.company_name || "Deal outcome";
+                card.append(make("h4", "", company), make("span", `outcome ${statusClass(item.outcome)}`, item.outcome), make("p", "", item.content));
+                if (item.deal_id || item.memory_id) { const sourceIds = make("details"); sourceIds.append(make("summary", "", "View source IDs")); if (item.deal_id) sourceIds.append(make("code", "", `Deal ID: ${item.deal_id}`)); if (item.memory_id) sourceIds.append(make("code", "", `Memory ID: ${item.memory_id}`)); card.append(sourceIds); }
                 const button = make("button", "autopsy-btn", "View evidence-backed autopsy"); button.type = "button";
-                const result = make("pre", "api-state");
+                const result = make("div", "api-state");
                 button.addEventListener("click", async () => {
                     button.disabled = true; result.textContent = "Analyzing deal history…";
-                    try { const autopsy = await api.request(`/api/deals/${encodeURIComponent(item.deal_id)}/autopsy`, { method: "POST", body: JSON.stringify({ outcome: item.outcome }) }); result.textContent = JSON.stringify(autopsy, null, 2); }
+                    try { const autopsy = await api.request(`/api/deals/${encodeURIComponent(item.deal_id)}/autopsy`, { method: "POST", body: JSON.stringify({ outcome: item.outcome }) }); result.textContent = ""; renderResult(result, autopsy, "Deal Autopsy"); }
                     catch (error) { result.textContent = errorText(error); }
                     finally { button.disabled = false; }
                 });
                 card.append(button, result); autopsyGrid.append(card);
             });
             else if (autopsyGrid) state(autopsyGrid, "Not enough historical data yet.");
-            $("#analyzeBtn")?.addEventListener("click", async (event) => { const button = event.currentTarget; button.disabled = true; try { await renderLearning(); } catch (error) { state(patternList, errorText(error), "error"); } finally { button.disabled = false; } });
-            $("#patternsBtn")?.addEventListener("click", () => { patternList.scrollIntoView({ behavior: "smooth" }); });
-            $("#autopsyBtn")?.addEventListener("click", () => { autopsyGrid?.scrollIntoView({ behavior: "smooth" }); });
         } catch (error) { state(patternList, errorText(error), "error"); state(similarList, errorText(error), "error"); state(autopsyGrid, errorText(error), "error"); state(lessonsGrid, errorText(error), "error"); }
     }
 

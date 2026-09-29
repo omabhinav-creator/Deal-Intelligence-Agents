@@ -2,6 +2,7 @@
 
 from contextlib import contextmanager
 from datetime import datetime, timezone
+import logging
 from typing import Any
 from uuid import uuid4
 
@@ -33,6 +34,7 @@ router = APIRouter(
     tags=["Hindsight intelligence"],
     dependencies=[Depends(get_current_user)],
 )
+logger = logging.getLogger(__name__)
 
 
 @contextmanager
@@ -182,7 +184,11 @@ async def ingest_interaction(deal_id: str, request: Request, response: Response)
 @router.get("/brief")
 def deal_brief(deal_id: str) -> Any:
     with _managed_memory_client() as client:
-        return DealBriefGenerator(memory_client=client).generate(deal_id)
+        try:
+            return DealBriefGenerator(memory_client=client).generate(deal_id)
+        except DealBriefError:
+            logger.exception("Deal Brief generation failed for deal %s", deal_id)
+            raise
 
 
 @router.get("/changes")

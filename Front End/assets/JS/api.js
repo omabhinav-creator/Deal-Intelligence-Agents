@@ -20,7 +20,6 @@
     function saveSession(session) {
         localStorage.setItem(TOKEN_KEY, session.access_token);
         localStorage.setItem(USER_KEY, JSON.stringify(session.user));
-        localStorage.setItem("dealMindAuthenticated", "true");
     }
     function renderUser(user) {
         const initial = user.name.trim().charAt(0).toUpperCase() || "?";
@@ -41,6 +40,12 @@
         headers.set("Accept", "application/json");
         if (options.body !== undefined && !headers.has("Content-Type")) headers.set("Content-Type", "application/json");
         const token = localStorage.getItem(TOKEN_KEY);
+        const publicAuthRequest = /^\/api\/auth\/(login|signup)$/.test(path);
+        if (!token && !publicAuthRequest) {
+            clearSession();
+            if (!window.location.pathname.endsWith("/auth.html")) window.location.replace(loginPage());
+            throw apiError("Sign in to access DealMind data.", "authentication", 401);
+        }
         if (token) headers.set("Authorization", `Bearer ${token}`);
         let response;
         try { response = await fetch(`${API_BASE_URL}${path}`, { ...options, headers }); }
@@ -53,12 +58,34 @@
                 throw apiError(body?.detail || "Your session has expired. Please sign in again.", "authentication", response.status);
             }
             const kind = response.status >= 500 ? "backend" : "request";
-            throw apiError(body?.detail || "The request could not be completed.", kind, response.status);
+            const detail = Array.isArray(body?.detail)
+                ? body.detail.map((item) => item.msg).filter(Boolean).join(" ")
+                : body?.detail;
+            const message = response.status >= 500
+                ? detail || "Deal Intelligence is temporarily unavailable. Please try again shortly."
+                : response.status === 404
+                    ? "The requested DealMind record could not be found."
+                : response.status === 400
+                    ? "The selected deal or request is invalid."
+                : response.status === 409
+                    ? detail || "An account with that email already exists."
+                : response.status === 422
+                        ? detail || "Please check the submitted information and try again."
+                        : detail || "The request could not be completed.";
+            const error = apiError(message, kind, response.status);
+            error.endpoint = path;
+            error.providerMessage = body?.provider_message || null;
+            error.retryAfter = body?.retry_after || response.headers.get("Retry-After");
+            throw error;
         }
         return body;
     }
     async function requireAuth() {
-        if (!localStorage.getItem(TOKEN_KEY)) { window.location.replace(loginPage()); return null; }
+        if (!localStorage.getItem(TOKEN_KEY)) {
+            clearSession();
+            window.location.replace(loginPage());
+            return null;
+        }
         try {
             const user = await request("/api/auth/me");
             localStorage.setItem(USER_KEY, JSON.stringify(user));

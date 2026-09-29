@@ -289,7 +289,12 @@ class SimilarDealsFinder:
                 },
             )
         except APIError as exc:
-            raise SimilarDealsError("Groq similar-deal comparison failed.") from exc
+            status_code = getattr(exc, "status_code", None)
+            status = f" (HTTP {status_code})" if status_code is not None else ""
+            provider_message = getattr(exc, "message", None) or str(exc)
+            raise SimilarDealsError(
+                f"Groq similar-deal comparison failed{status}: {provider_message}"
+            ) from exc
 
         if not response.choices:
             raise SimilarDealsError("Groq returned no similar-deal comparison.")
@@ -426,5 +431,5 @@ class SimilarDealsFinder:
                 raise SimilarDealsConfigurationError(
                     "GROQ_API_KEY_AI is required to compare similar deals."
                 )
-            self._groq_client = Groq(api_key=self._groq_api_key)
+            self._groq_client = Groq(api_key=self._groq_api_key, max_retries=0)
         return self._groq_client

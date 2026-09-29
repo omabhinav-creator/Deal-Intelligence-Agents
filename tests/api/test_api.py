@@ -10,7 +10,11 @@ import pytest
 from backend.auth import get_current_user
 from backend.main import app
 from backend.routes import hindsight_intelligence as api
+from backend.routes import learning as learning_api
+from Hindsight.ai.intelligence_schemas import Evidence, Pattern, WinningLossPatternsResult
 from Hindsight.ai.extraction import SalesIntelligenceExtraction
+from Hindsight.ai.deal_brief import DealBriefRateLimitError
+from Hindsight.ai.deal_autopsy import DealAutopsyRateLimitError
 from Hindsight.memory.memory_schema import DealMemory, MemoryType
 
 
@@ -29,6 +33,47 @@ def test_health():
 
     assert response.status_code == 200
     assert response.json() == {"status": "ok"}
+
+
+def test_learning_endpoint_returns_grouped_patterns_and_existing_history(monkeypatch):
+	deal_ids = ["TechNova", "Acme Corp", "Nova Systems", "Quantum Systems"]
+	evidence = [
+		Evidence(memory_id=f"memory-{index}", deal_id=deal_id, memory_type=MemoryType.LESSON_LEARNED, content="Evidence-backed lesson")
+		for index, deal_id in enumerate(deal_ids)
+	]
+	pattern = Pattern(
+		description="A grouped, evidence-backed pattern",
+		occurrence_count=4,
+		supporting_deal_ids=deal_ids,
+		evidence=evidence,
+	)
+	monkeypatch.setattr(learning_api, "analyze_patterns", lambda _client: WinningLossPatternsResult(patterns=[pattern]))
+
+	class FakeMemoryClient:
+		def recall_memory(self, *_args, **_kwargs):
+			return SimpleNamespace(results=[
+				SimpleNamespace(
+					id=f"history-{index}-{kind}", text=f"{kind} for {deal_id}", type=kind,
+					metadata={"deal_id": deal_id, "memory_type": kind, "status": "won" if kind == "deal_outcome" else None},
+					tags=[f"deal:{deal_id}"], occurred_start=None, mentioned_at=None,
+				)
+				for index, deal_id in enumerate(deal_ids)
+				for kind in ("deal_outcome", "lesson_learned")
+			])
+		def close(self):
+			pass
+
+	monkeypatch.setattr(learning_api, "HindsightMemoryClient", FakeMemoryClient)
+	response = client.get("/api/learning")
+
+	assert response.status_code == 200
+	body = response.json()
+	assert len(body["patterns"]["patterns"]) == 1
+	assert body["patterns"]["patterns"][0]["occurrence_count"] == 4
+	assert {item["deal_id"] for item in body["patterns"]["patterns"][0]["evidence"]} == set(deal_ids)
+	assert {item["deal_id"] for item in body["history"]} == set(deal_ids)
+	assert sum(item["memory_type"] == "lesson_learned" for item in body["history"]) == 4
+	assert sum(item["memory_type"] == "deal_outcome" for item in body["history"]) == 4
 
 
 def test_preflight_allows_only_configured_live_server_origin():
@@ -179,6 +224,36 @@ def test_brief_endpoint(monkeypatch):
     assert response.json()["kind"] == "brief"
 
 
+def test_brief_endpoint_returns_provider_429_and_retry_after(monkeypatch):
+    class RateLimitedBrief:
+        def generate(self, _deal_id):
+            raise DealBriefRateLimitError(
+                "Error code: 429 - provider quota exhausted",
+                retry_after="30",
+            )
+
+    class NoopMemoryClient:
+        def close(self):
+            pass
+
+    from contextlib import contextmanager
+
+    @contextmanager
+    def managed_memory_client():
+        yield NoopMemoryClient()
+
+    monkeypatch.setattr(api, "DealBriefGenerator", lambda **_kwargs: RateLimitedBrief())
+    monkeypatch.setattr(api, "_managed_memory_client", managed_memory_client)
+
+    response = client.get("/api/deals/deal-1/brief")
+
+    assert response.status_code == 429
+    assert response.headers["retry-after"] == "30"
+    assert "Groq is rate-limited" in response.json()["detail"]
+    assert "provider quota exhausted" in response.json()["provider_message"]
+    assert response.json()["retry_after"] == "30"
+
+
 def test_changes_endpoint(monkeypatch):
     monkeypatch.setattr(api, "DealChangeAnalyzer", lambda **_kwargs: FakeChanges())
     response = client.get("/api/deals/deal-1/changes")
@@ -220,6 +295,20 @@ def test_autopsy_endpoint(monkeypatch):
     )
     assert response.status_code == 200
     assert response.json() == {"deal_id": "deal-1", "outcome": "stalled"}
+
+
+def test_autopsy_rate_limit_preserves_provider_message_and_retry_after(monkeypatch):
+    class RateLimitedAutopsy:
+        def analyze(self, _deal_id, _outcome):
+            raise DealAutopsyRateLimitError("provider quota exhausted", "30")
+
+    monkeypatch.setattr(api, "DealAutopsyAnalyzer", lambda **_kwargs: RateLimitedAutopsy())
+    response = client.post("/api/deals/deal-1/autopsy", json={"outcome": "won"})
+
+    assert response.status_code == 429
+    assert response.headers["retry-after"] == "30"
+    assert response.json()["provider_message"] == "provider quota exhausted"
+    assert "rate limit" in response.json()["detail"]
 
 
 def test_invalid_input_returns_422_without_calling_services(monkeypatch):

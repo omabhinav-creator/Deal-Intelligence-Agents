@@ -1,6 +1,9 @@
 """Retrieve deal-scoped Hindsight evidence and generate a concise Groq brief."""
 
 import json
+import time
+from datetime import datetime, timezone
+from email.utils import parsedate_to_datetime
 from typing import Any
 
 from groq import APIError, Groq
@@ -21,6 +24,39 @@ class DealBriefError(RuntimeError):
 
 class DealBriefConfigurationError(DealBriefError):
 	"""Required Groq configuration is missing."""
+
+
+class DealBriefRateLimitError(DealBriefError):
+	"""Groq remained rate-limited after the one permitted short retry."""
+
+	def __init__(self, provider_message: str, retry_after: str | None = None) -> None:
+		self.provider_message = provider_message
+		self.retry_after = retry_after
+		super().__init__(
+			"Deal Brief is temporarily unavailable because Groq is rate-limited "
+			"(HTTP 429). Please try again after the provider retry interval."
+		)
+
+
+_MAX_RATE_LIMIT_RETRIES = 1
+_MAX_RATE_LIMIT_WAIT_SECONDS = 5.0
+
+
+def _retry_after_seconds(value: str | None) -> float | None:
+	"""Parse Retry-After seconds or HTTP-date without guessing a retry delay."""
+	if value is None:
+		return None
+	try:
+		return max(0.0, float(value))
+	except (TypeError, ValueError):
+		pass
+	try:
+		retry_at = parsedate_to_datetime(value)
+		if retry_at.tzinfo is None:
+			retry_at = retry_at.replace(tzinfo=timezone.utc)
+		return max(0.0, (retry_at - datetime.now(timezone.utc)).total_seconds())
+	except (TypeError, ValueError, OverflowError):
+		return None
 
 
 class BriefFact(BaseModel):
@@ -142,35 +178,55 @@ class DealBriefGenerator:
 		evidence: list[BriefEvidence],
 	) -> DealBriefDraft:
 		client = self._get_groq_client()
-		try:
-			response = client.chat.completions.create(
-				model=self._model,
-				messages=[
-					{"role": "system", "content": DEAL_BRIEF_PROMPT},
-					{
-						"role": "user",
-						"content": json.dumps(
-							{
-								"deal_id": deal_id,
-								"supporting_memories": [
-									item.model_dump(mode="json") for item in evidence
-								],
-							},
-							ensure_ascii=False,
-						),
+		for attempt in range(_MAX_RATE_LIMIT_RETRIES + 1):
+			try:
+				response = client.chat.completions.create(
+					model=self._model,
+					messages=[
+						{"role": "system", "content": DEAL_BRIEF_PROMPT},
+						{
+							"role": "user",
+							"content": json.dumps(
+								{
+									"deal_id": deal_id,
+									"supporting_memories": [
+										item.model_dump(mode="json") for item in evidence
+									],
+								},
+								ensure_ascii=False,
+							),
+						},
+					],
+					response_format={
+						"type": "json_schema",
+						"json_schema": {
+							"name": "deal_brief",
+							"strict": False,
+							"schema": DealBriefDraft.model_json_schema(),
+						},
 					},
-				],
-				response_format={
-					"type": "json_schema",
-					"json_schema": {
-						"name": "deal_brief",
-						"strict": False,
-						"schema": DealBriefDraft.model_json_schema(),
-					},
-				},
-			)
-		except APIError as exc:
-			raise DealBriefError("Groq deal brief request failed.") from exc
+				)
+			except APIError as exc:
+				status_code = getattr(exc, "status_code", None)
+				if status_code == 429:
+					response_headers = getattr(getattr(exc, "response", None), "headers", {})
+					retry_after = response_headers.get("retry-after")
+					retry_delay = _retry_after_seconds(retry_after)
+					if (
+						attempt < _MAX_RATE_LIMIT_RETRIES
+						and retry_delay is not None
+						and retry_delay <= _MAX_RATE_LIMIT_WAIT_SECONDS
+					):
+						if retry_delay:
+							time.sleep(retry_delay)
+						continue
+					provider_message = getattr(exc, "message", None) or str(exc)
+					raise DealBriefRateLimitError(provider_message, retry_after) from exc
+				status = f" (HTTP {status_code})" if status_code is not None else ""
+				provider_message = getattr(exc, "message", None) or str(exc)
+				raise DealBriefError(
+					f"Groq deal brief request failed{status}: {provider_message}"
+				) from exc
 
 		if not response.choices:
 			raise DealBriefError("Groq returned no deal brief choices.")
@@ -192,7 +248,7 @@ class DealBriefGenerator:
 				raise DealBriefConfigurationError(
 					"GROQ_API_KEY_AI is required to generate a deal brief."
 				)
-			self._groq_client = Groq(api_key=self._groq_api_key)
+			self._groq_client = Groq(api_key=self._groq_api_key, max_retries=0)
 		return self._groq_client
 
 	@staticmethod

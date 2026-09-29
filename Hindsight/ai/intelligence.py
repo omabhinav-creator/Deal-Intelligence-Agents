@@ -1,6 +1,7 @@
 ﻿"""Deterministic, evidence-backed deal intelligence services."""
 
 import re
+import unicodedata
 from datetime import datetime, timezone
 from typing import Any
 
@@ -870,30 +871,35 @@ def analyze_patterns(
 		MemoryType.SALES_ACTION,
 		MemoryType.LESSON_LEARNED,
 	}
-	# outcome -> (memory type, normalized characteristic) -> deal -> evidence
-	feature_deals: dict[
-		DealOutcome,
-		dict[tuple[MemoryType, str], dict[str, list[Evidence]]],
-	] = {}
+	# Group source memories by memory type and conservative local semantic similarity.
+	# Each group retains every original evidence record and its canonical deal ID.
+	feature_groups: list[dict[str, Any]] = []
 	for deal_id, outcome in deal_outcomes.items():
-		by_feature: dict[tuple[MemoryType, str], list[Evidence]] = {}
 		for evidence in deals[deal_id]:
 			if evidence.memory_type not in feature_types:
 				continue
-			for term in _pattern_terms(evidence.content):
-				by_feature.setdefault((evidence.memory_type, term), []).append(evidence)
-		for feature, items in by_feature.items():
-			feature_deals.setdefault(outcome, {}).setdefault(feature, {})[deal_id] = items
+			tokens = _semantic_pattern_tokens(evidence.content)
+			if not tokens:
+				continue
+			group = next(
+				(
+					candidate
+					for candidate in feature_groups
+					if candidate["memory_type"] == evidence.memory_type
+					and _pattern_similarity(tokens, candidate["tokens"]) >= 0.75
+				),
+				None,
+			)
+			if group is None:
+				group = {"memory_type": evidence.memory_type, "tokens": tokens, "deals": {}}
+				feature_groups.append(group)
+			group["deals"].setdefault(outcome, {}).setdefault(deal_id, []).append(evidence)
 
 	# Index where each characteristic also appears under other known outcomes.
-	all_outcome_support: dict[tuple[MemoryType, str], dict[DealOutcome, dict[str, list[Evidence]]]] = {}
-	for outcome, features in feature_deals.items():
-		for feature, supporting_deals in features.items():
-			all_outcome_support.setdefault(feature, {})[outcome] = supporting_deals
-
 	patterns: list[Pattern] = []
-	for outcome, features in feature_deals.items():
-		for (memory_type, term), supporting_deals in features.items():
+	for group in feature_groups:
+		memory_type = group["memory_type"]
+		for outcome, supporting_deals in group["deals"].items():
 			if len(supporting_deals) < 2:
 				continue
 			label = _SIMILARITY_LABELS.get(memory_type, _CATEGORY_LABELS.get(memory_type, memory_type.value.replace("_", " ")))
@@ -903,7 +909,7 @@ def analyze_patterns(
 			deal_ids = sorted(supporting_deals, key=str.casefold)
 			observations = [
 				Insight(
-					statement=f"{supported_deal} has a {label} memory containing the characteristic '{term}'.",
+					statement=f"{supported_deal} has a {label} memory supporting this recurring pattern.",
 					kind=ClaimKind.OBSERVED_FACT,
 					evidence=_unique_evidence(records),
 				)
@@ -911,7 +917,7 @@ def analyze_patterns(
 			]
 			other_support: list[Evidence] = []
 			other_outcomes: list[str] = []
-			for other_outcome, other_deals in all_outcome_support.get((memory_type, term), {}).items():
+			for other_outcome, other_deals in group["deals"].items():
 				if other_outcome == outcome or not other_deals:
 					continue
 				other_outcomes.append(other_outcome.value.upper())
@@ -926,10 +932,8 @@ def analyze_patterns(
 				)
 			patterns.append(
 				Pattern(
-					description=(
-						f"Among explicit {outcome.value.upper()} deals, {label} memories "
-						f"containing '{term}' appear in {len(supporting_deals)} deals."
-					),
+					description=f"Among explicit {outcome.value.upper()} deals, recurring {label} pattern: {support_evidence[0].content}",
+					occurrence_count=len(support_evidence),
 					observations=observations,
 					observed_outcomes=[outcome],
 					supporting_deal_ids=deal_ids,
@@ -950,6 +954,7 @@ def analyze_patterns(
 			item.description.casefold(),
 		)
 	)
+	patterns = _deduplicate_patterns(patterns)
 	if not patterns:
 		limitations.append("No characteristic recurred across at least two deals with the same explicit outcome.")
 	return WinningLossPatternsResult(
@@ -957,6 +962,70 @@ def analyze_patterns(
 		insufficient_evidence=not bool(patterns),
 		limitations=list(dict.fromkeys(limitations)),
 	)
+
+
+def _normalized_pattern_text(text: str) -> str:
+	"""Normalize typography and spacing while preserving the complete wording."""
+	text = unicodedata.normalize("NFKC", text).casefold()
+	return " ".join(re.findall(r"[a-z0-9]+", text))
+
+
+def _semantic_pattern_tokens(text: str) -> set[str]:
+	"""Return conservative, synonym-normalized content words for pattern grouping."""
+	synonyms = {
+		"stakeholders": "stakeholder",
+		"engage": "alignment", "engaged": "alignment", "engaging": "alignment",
+		"engagement": "alignment", "align": "alignment", "aligned": "alignment",
+		"improves": "improve", "improved": "improve", "improving": "improve",
+		"progression": "progress", "progressed": "progress", "advances": "progress",
+		"advance": "progress", "advancing": "progress", "moves": "progress",
+		"move": "progress", "forward": "progress",
+		"deals": "deal", "helps": "help",
+	}
+	ignored = _STOP_WORDS | {
+		"deal", "deals", "memory", "memories", "pattern", "patterns", "among",
+		"explicit", "appear", "appears", "appeared", "across", "recurring",
+		"containing", "contains", "supporting", "support", "supports",
+		"winning", "won", "lost", "stalled",
+		"open", "outcome", "outcomes", "sales", "team", "teams", "business",
+		"help",
+	}
+	result = set()
+	for word in re.findall(r"[a-z0-9]+", unicodedata.normalize("NFKC", text).casefold()):
+		canonical = synonyms.get(word, word)
+		if len(canonical) >= 4 and canonical not in ignored:
+			result.add(canonical)
+	return result
+
+
+def _pattern_similarity(first: set[str], second: set[str]) -> float:
+	if not first or not second:
+		return 0.0
+	return len(first & second) / len(first | second)
+
+
+def _deduplicate_patterns(patterns: list[Pattern]) -> list[Pattern]:
+	"""Merge exact normalized duplicates without clustering partially similar claims."""
+	unique: dict[tuple[tuple[str, ...], str], Pattern] = {}
+	for pattern in patterns:
+		key = (tuple(sorted(outcome.value for outcome in pattern.observed_outcomes)), _normalized_pattern_text(pattern.description))
+		current = unique.get(key)
+		if current is None:
+			unique[key] = pattern
+			continue
+		current.occurrence_count += pattern.occurrence_count
+		current.supporting_deal_ids = list(dict.fromkeys(current.supporting_deal_ids + pattern.supporting_deal_ids))
+		current.evidence = _unique_evidence(current.evidence + pattern.evidence)
+		current.interpretation_evidence = _unique_evidence(current.interpretation_evidence + pattern.interpretation_evidence)
+		current.other_outcome_evidence = _unique_evidence(current.other_outcome_evidence + pattern.other_outcome_evidence)
+		for observation in pattern.observations:
+			match = next((existing for existing in current.observations if _normalized_pattern_text(existing.statement) == _normalized_pattern_text(observation.statement)), None)
+			if match is None:
+				current.observations.append(observation)
+			else:
+				match.evidence = _unique_evidence(match.evidence + observation.evidence)
+		current.observed_outcomes = list(dict.fromkeys(current.observed_outcomes + pattern.observed_outcomes))
+	return list(unique.values())
 
 
 def _parse_explicit_outcome(content: str) -> DealOutcome | None:
@@ -970,26 +1039,6 @@ def _parse_explicit_outcome(content: str) -> DealOutcome | None:
 	if re.search(r"\b(won|closed won)\b", text):
 		return DealOutcome.WON
 	return None
-
-
-def _pattern_terms(content: str) -> set[str]:
-	category_words = {
-		"concern", "concerns", "objection", "objections", "risk", "risks",
-		"issue", "issues", "pricing", "requirement", "requirements",
-		"competitor", "competitors", "request", "requests", "signal", "signals",
-		"concerned", "worries", "worried",
-	}
-	generic = _STOP_WORDS | {
-		"annual", "appears", "appeared", "deal", "deals", "historical",
-		"memory", "memories", "outcome", "won", "lost", "stalled",
-		"open", "closed", "resolved", "explicit", "recorded", "required",
-		"requires", "require", "high", "low", "raised", "stated",
-	}
-	return {
-		{"pricing": "price", "prices": "price"}.get(word, word)
-		for word in re.findall(r"[a-z0-9]+", content.casefold())
-		if len(word) >= 4 and word not in generic and word not in category_words
-	}
 
 
 def _unique_evidence(evidence: list[Evidence]) -> list[Evidence]:

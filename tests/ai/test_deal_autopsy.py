@@ -6,13 +6,15 @@ from typing import cast
 from unittest.mock import Mock
 
 import pytest
-from groq import Groq
+import httpx
+from groq import Groq, RateLimitError, APIStatusError
 
 from backend.memory.hindsight_client import HindsightMemoryClient
 from Hindsight.ai.deal_autopsy import (
     DealAutopsyAnalyzer,
     DealAutopsyDraft,
     DealAutopsyError,
+    DealAutopsyRateLimitError,
 )
 from Hindsight.memory.learning import ObservedOutcomeFact, OutcomeLesson
 
@@ -129,3 +131,36 @@ def test_invalid_outcome_is_rejected():
 
     with pytest.raises(ValueError, match="won, lost, or stalled"):
         service.analyze("deal-1", "unknown")
+
+
+def test_groq_rate_limit_is_reported_without_retry_and_preserves_retry_after():
+    request = httpx.Request("POST", "https://api.groq.com/openai/v1/chat/completions")
+    response = httpx.Response(429, headers={"Retry-After": "30"}, request=request)
+    provider_error = RateLimitError(
+        "provider quota exhausted", response=response,
+        body={"error": {"message": "provider quota exhausted"}},
+    )
+    service, hindsight, groq = analyzer(DealAutopsyDraft())
+    groq.chat.completions.create.side_effect = provider_error
+
+    with pytest.raises(DealAutopsyRateLimitError) as error:
+        service.analyze("deal-1", "won")
+
+    assert error.value.retry_after == "30"
+    assert error.value.provider_message == "provider quota exhausted"
+    assert hindsight.recall_memory.call_count == 1
+    assert groq.chat.completions.create.call_count == 1
+
+
+def test_non_rate_limit_groq_status_is_preserved():
+    request = httpx.Request("POST", "https://api.groq.com/openai/v1/chat/completions")
+    response = httpx.Response(503, request=request)
+    provider_error = APIStatusError(
+        "provider temporarily unavailable", response=response, body={"error": "unavailable"}
+    )
+    service, _, groq = analyzer(DealAutopsyDraft())
+    groq.chat.completions.create.side_effect = provider_error
+
+    with pytest.raises(DealAutopsyError, match="HTTP 503.*provider temporarily unavailable"):
+        service.analyze("deal-1", "won")
+    assert groq.chat.completions.create.call_count == 1

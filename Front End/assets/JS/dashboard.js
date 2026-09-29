@@ -2,7 +2,8 @@
    DEALMIND — DASHBOARD JAVASCRIPT
 ========================================= */
 
-if (localStorage.getItem("dealMindAuthenticated") !== "true") {
+if (!localStorage.getItem("dealMindAccessToken")) {
+     localStorage.removeItem("dealMindAuthenticated");
      window.location.href = "auth.html";
 } else {
 

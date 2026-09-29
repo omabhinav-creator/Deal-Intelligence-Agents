@@ -6,6 +6,8 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+from Hindsight.ai.deal_brief import DealBriefRateLimitError
+from Hindsight.ai.deal_autopsy import DealAutopsyRateLimitError
 from .database import close_database_client
 from .routes import api_router
 from .routes.hindsight_intelligence import SERVICE_ERRORS
@@ -43,6 +45,26 @@ async def value_error_handler(_: Request, exc: ValueError) -> JSONResponse:
 
 
 async def service_error_handler(_: Request, exc: RuntimeError) -> JSONResponse:
+    provider_error = exc
+    while provider_error.__cause__ is not None:
+        provider_error = provider_error.__cause__
+    if (
+        isinstance(exc, (DealBriefRateLimitError, DealAutopsyRateLimitError))
+        or getattr(provider_error, "status_code", None) == 429
+    ):
+        response = getattr(provider_error, "response", None)
+        retry_after = (
+            exc.retry_after
+            if isinstance(exc, (DealBriefRateLimitError, DealAutopsyRateLimitError))
+            else getattr(response, "headers", {}).get("retry-after")
+        )
+        headers = {"Retry-After": retry_after} if retry_after else None
+        content = {"detail": str(exc)}
+        provider_message = getattr(exc, "provider_message", None)
+        if provider_message:
+            content["provider_message"] = provider_message
+            content["retry_after"] = retry_after
+        return JSONResponse(status_code=429, content=content, headers=headers)
     return JSONResponse(status_code=502, content={"detail": str(exc)})
 
 

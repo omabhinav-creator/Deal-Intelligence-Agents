@@ -34,6 +34,21 @@ class DealAutopsyConfigurationError(DealAutopsyError):
     """Groq configuration required for an autopsy is missing."""
 
 
+class DealAutopsyRateLimitError(DealAutopsyError):
+    """Groq rate-limited an autopsy request; callers must not retry automatically."""
+
+    def __init__(self, provider_message: str, retry_after: str | None = None) -> None:
+        self.provider_message = provider_message
+        self.retry_after = retry_after
+        message = (
+            "Deal Autopsy is temporarily unavailable because the AI provider rate limit "
+            "has been reached. Please try again later."
+        )
+        if retry_after:
+            message += f" Retry after: {retry_after}."
+        super().__init__(message)
+
+
 class DealAutopsyDraft(BaseModel):
     """Structured model output before evidence references are validated."""
 
@@ -162,7 +177,17 @@ class DealAutopsyAnalyzer:
                 },
             )
         except APIError as exc:
-            raise DealAutopsyError("Groq deal-autopsy analysis failed.") from exc
+            status_code = getattr(exc, "status_code", None)
+            provider_message = getattr(exc, "message", None) or str(exc)
+            if status_code == 429:
+                response_headers = getattr(getattr(exc, "response", None), "headers", {})
+                raise DealAutopsyRateLimitError(
+                    provider_message, response_headers.get("retry-after")
+                ) from exc
+            status = f" (HTTP {status_code})" if status_code is not None else ""
+            raise DealAutopsyError(
+                f"Groq deal-autopsy analysis failed{status}: {provider_message}"
+            ) from exc
         if not response.choices:
             raise DealAutopsyError("Groq returned no deal-autopsy analysis.")
         message = response.choices[0].message
@@ -218,7 +243,7 @@ class DealAutopsyAnalyzer:
                 raise DealAutopsyConfigurationError(
                     "GROQ_API_KEY_AI is required to generate a deal autopsy."
                 )
-            self._groq_client = Groq(api_key=self._groq_api_key)
+            self._groq_client = Groq(api_key=self._groq_api_key, max_retries=0)
         return self._groq_client
 
 

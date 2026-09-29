@@ -162,6 +162,7 @@ class Pattern(BaseModel):
 	model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
 
 	description: str = Field(min_length=1)
+	occurrence_count: int = Field(default=1, ge=1)
 	observations: list[Insight] = Field(default_factory=list)
 	observed_outcomes: list[DealOutcome] = Field(default_factory=list)
 	supporting_deal_ids: list[str] = Field(default_factory=list)

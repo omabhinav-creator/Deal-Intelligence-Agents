@@ -6,6 +6,7 @@ from unittest.mock import Mock
 import pytest
 
 from Hindsight.ai.intelligence import (
+	_deduplicate_patterns,
 	find_similar_deals,
 	analyze_patterns,
 	get_objection_evolution,
@@ -15,7 +16,9 @@ from Hindsight.ai.intelligence import (
 from Hindsight.ai.intelligence_schemas import (
 	ClaimKind,
 	DealOutcome,
+	Evidence,
 	ObjectionState,
+	Pattern,
 )
 from Hindsight.memory.memory_schema import MemoryType
 
@@ -816,6 +819,64 @@ def test_every_pattern_has_evidence_from_multiple_matching_deals():
 		assert pattern.evidence
 		assert {item.deal_id for item in pattern.evidence} == set(pattern.supporting_deal_ids)
 		assert all(observation.evidence for observation in pattern.observations)
+
+
+def test_duplicate_patterns_merge_occurrences_deals_and_evidence():
+	first = Pattern(
+		description="Early stakeholder alignment improves deal progress",
+		observed_outcomes=[DealOutcome.WON],
+		supporting_deal_ids=["DealA"],
+		evidence=[Evidence(memory_id="m1", deal_id="DealA", memory_type=MemoryType.BUYING_SIGNAL, content="Alignment")],
+	)
+	second = Pattern(
+		description="  EARLY stakeholder alignment improves deal progress! ",
+		observed_outcomes=[DealOutcome.WON],
+		supporting_deal_ids=["DealB"],
+		evidence=[Evidence(memory_id="m2", deal_id="DealB", memory_type=MemoryType.BUYING_SIGNAL, content="Alignment")],
+	)
+
+	result = _deduplicate_patterns([first, second])
+
+	assert len(result) == 1
+	assert result[0].description == first.description
+	assert result[0].occurrence_count == 2
+	assert result[0].supporting_deal_ids == ["DealA", "DealB"]
+	assert {item.memory_id for item in result[0].evidence} == {"m1", "m2"}
+
+
+def test_patterns_sharing_words_but_different_claims_stay_separate():
+	patterns = [
+		Pattern(description="Early stakeholder alignment improves deal progress"),
+		Pattern(description="Late stakeholder alignment delays deal progress"),
+	]
+
+	assert len(_deduplicate_patterns(patterns)) == 2
+
+
+def test_analyzer_groups_reworded_claims_and_keeps_different_claim_separate():
+	memories = []
+	claims = [
+		"Early stakeholder alignment improves deal progress.",
+		"Early stakeholder engagement helps move deals forward.",
+		"Engaging stakeholders early improves deal progression.",
+	]
+	for index, claim in enumerate(claims, start=1):
+		deal_id = f"Won{index}"
+		memories.append(recalled_memory(f"claim-{index}", claim, None, deal_id=deal_id, memory_type=MemoryType.CUSTOMER_REQUIREMENT))
+		memories.append(recalled_memory(f"outcome-{index}", "Deal outcome: won.", None, deal_id=deal_id, memory_type=MemoryType.DEAL_OUTCOME))
+		if index < 3:
+			memories.append(recalled_memory(f"risk-{index}", "Early stakeholder alignment reduces pricing risk.", None, deal_id=deal_id, memory_type=MemoryType.CUSTOMER_REQUIREMENT))
+
+	result = analyze_patterns(make_client(memories))
+
+	assert len(result.patterns) == 2
+	alignment = next(pattern for pattern in result.patterns if "improves deal progress" in pattern.description)
+	pricing_risk = next(pattern for pattern in result.patterns if "reduces pricing risk" in pattern.description)
+	assert alignment.occurrence_count == 3
+	assert set(alignment.supporting_deal_ids) == {"Won1", "Won2", "Won3"}
+	assert len(alignment.evidence) == 3
+	assert pricing_risk.occurrence_count == 2
+	assert set(pricing_risk.supporting_deal_ids) == {"Won1", "Won2"}
 
 
 def test_historical_deal_evidence_remains_grouped_by_deal():

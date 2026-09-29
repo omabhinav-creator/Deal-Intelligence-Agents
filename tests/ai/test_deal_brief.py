@@ -1,12 +1,15 @@
 """Mocked tests for deal-specific, evidence-backed Deal Brief generation."""
 
 import json
+from datetime import datetime, timedelta, timezone
+from email.utils import format_datetime
 from types import SimpleNamespace
 from typing import cast
 from unittest.mock import Mock
 
 import pytest
-from groq import Groq
+import httpx
+from groq import Groq, RateLimitError
 
 from backend.memory.hindsight_client import (
     HindsightMemoryClient,
@@ -18,6 +21,8 @@ from Hindsight.ai.deal_brief import (
     DealBriefDraft,
     DealBriefError,
     DealBriefGenerator,
+    DealBriefRateLimitError,
+    _retry_after_seconds,
 )
 
 
@@ -52,6 +57,17 @@ def make_groq_client(draft: DealBriefDraft) -> tuple[Groq, Mock]:
         choices=[SimpleNamespace(message=message)]
     )
     return cast(Groq, client), client
+
+
+def rate_limit_error(retry_after: str | None = None) -> RateLimitError:
+    headers = {"Retry-After": retry_after} if retry_after is not None else {}
+    request = httpx.Request("POST", "https://api.groq.com/openai/v1/chat/completions")
+    response = httpx.Response(429, headers=headers, request=request)
+    return RateLimitError(
+        "Error code: 429 - provider quota exhausted",
+        response=response,
+        body={"error": {"message": "provider quota exhausted"}},
+    )
 
 
 def sample_draft() -> DealBriefDraft:
@@ -303,3 +319,134 @@ def test_recall_failure_is_reported_without_groq_call():
     with pytest.raises(DealBriefError, match="Hindsight memory recall failed"):
         generator.generate("technova-deal")
     groq_mock.chat.completions.create.assert_not_called()
+
+
+def test_groq_429_without_retry_after_is_returned_without_retry_or_sleep(monkeypatch):
+    memory = recalled_memory(
+        "memory-1",
+        "TechNova requested a security review.",
+        deal_id="technova-deal",
+        memory_type="important_fact",
+    )
+    memory_client = Mock(spec=HindsightMemoryClient)
+    memory_client.recall_memory.return_value = SimpleNamespace(results=[memory])
+    groq_client, groq_mock = make_groq_client(DealBriefDraft())
+    groq_mock.chat.completions.create.side_effect = rate_limit_error()
+    generator = DealBriefGenerator(
+        memory_client=cast(HindsightMemoryClient, memory_client),
+        groq_client=groq_client,
+    )
+    sleep = Mock()
+    monkeypatch.setattr("Hindsight.ai.deal_brief.time.sleep", sleep)
+
+    with pytest.raises(DealBriefRateLimitError, match="HTTP 429") as error:
+        generator.generate("technova-deal")
+
+    assert "provider quota exhausted" in error.value.provider_message
+    assert error.value.retry_after is None
+    assert groq_mock.chat.completions.create.call_count == 1
+    sleep.assert_not_called()
+
+
+def test_groq_retry_after_allows_only_one_bounded_retry(monkeypatch):
+    memory = recalled_memory(
+        "memory-1",
+        "TechNova requested a security review.",
+        deal_id="technova-deal",
+        memory_type="important_fact",
+    )
+    memory_client = Mock(spec=HindsightMemoryClient)
+    memory_client.recall_memory.return_value = SimpleNamespace(results=[memory])
+    groq_client, groq_mock = make_groq_client(DealBriefDraft())
+    groq_mock.chat.completions.create.side_effect = [
+        rate_limit_error("2"),
+        rate_limit_error("30"),
+    ]
+    generator = DealBriefGenerator(
+        memory_client=cast(HindsightMemoryClient, memory_client),
+        groq_client=groq_client,
+    )
+    sleep = Mock()
+    monkeypatch.setattr("Hindsight.ai.deal_brief.time.sleep", sleep)
+
+    with pytest.raises(DealBriefRateLimitError) as error:
+        generator.generate("technova-deal")
+
+    assert error.value.retry_after == "30"
+    assert groq_mock.chat.completions.create.call_count == 2
+    sleep.assert_called_once_with(2.0)
+
+
+def test_groq_long_retry_after_is_preserved_without_waiting_or_retrying(monkeypatch):
+    memory = recalled_memory(
+        "memory-1",
+        "TechNova requested a security review.",
+        deal_id="technova-deal",
+        memory_type="important_fact",
+    )
+    memory_client = Mock(spec=HindsightMemoryClient)
+    memory_client.recall_memory.return_value = SimpleNamespace(results=[memory])
+    groq_client, groq_mock = make_groq_client(DealBriefDraft())
+    groq_mock.chat.completions.create.side_effect = rate_limit_error("60")
+    generator = DealBriefGenerator(
+        memory_client=cast(HindsightMemoryClient, memory_client),
+        groq_client=groq_client,
+    )
+    sleep = Mock()
+    monkeypatch.setattr("Hindsight.ai.deal_brief.time.sleep", sleep)
+
+    with pytest.raises(DealBriefRateLimitError) as error:
+        generator.generate("technova-deal")
+
+    assert error.value.retry_after == "60"
+    assert groq_mock.chat.completions.create.call_count == 1
+    sleep.assert_not_called()
+
+
+def test_groq_retry_after_short_retry_can_succeed_with_validated_real_shape(monkeypatch):
+    memories = [
+        recalled_memory(
+            "memory-1",
+            "TechNova is evaluating CompetitorX.",
+            deal_id="technova-deal",
+            memory_type="competitor",
+        ),
+        recalled_memory(
+            "memory-2",
+            "The CTO requested an integration overview.",
+            deal_id="technova-deal",
+            memory_type="important_fact",
+        ),
+        recalled_memory(
+            "memory-3",
+            "Procurement asked whether the price can be reduced.",
+            deal_id="technova-deal",
+            memory_type="pricing_discussion",
+        ),
+    ]
+    memory_client = Mock(spec=HindsightMemoryClient)
+    memory_client.recall_memory.return_value = SimpleNamespace(results=memories)
+    groq_client, groq_mock = make_groq_client(sample_draft())
+    success_response = groq_mock.chat.completions.create.return_value
+    groq_mock.chat.completions.create.side_effect = [rate_limit_error("1"), success_response]
+    generator = DealBriefGenerator(
+        memory_client=cast(HindsightMemoryClient, memory_client),
+        groq_client=groq_client,
+    )
+    sleep = Mock()
+    monkeypatch.setattr("Hindsight.ai.deal_brief.time.sleep", sleep)
+
+    brief = generator.generate("technova-deal")
+
+    assert brief.customer_company == "TechNova"
+    assert len(brief.supporting_evidence) == 3
+    assert groq_mock.chat.completions.create.call_count == 2
+    sleep.assert_called_once_with(1.0)
+
+
+def test_retry_after_parser_accepts_seconds_and_http_date():
+    future = datetime.now(timezone.utc) + timedelta(seconds=3)
+
+    assert _retry_after_seconds("2.5") == 2.5
+    assert _retry_after_seconds(format_datetime(future, usegmt=True)) <= 3
+    assert _retry_after_seconds("not-a-retry-date") is None
