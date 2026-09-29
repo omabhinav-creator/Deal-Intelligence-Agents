@@ -96,7 +96,7 @@ class DealBriefGenerator:
 		settings = get_settings()
 		self._memory_client = memory_client or HindsightMemoryClient()
 		self._groq_client = groq_client
-		self._groq_api_key = settings.groq_api_key
+		self._groq_api_key = settings.ai_groq_api_key
 		self._model = model or settings.groq_model
 
 	def generate(self, deal_id: str) -> DealBrief:
@@ -190,7 +190,7 @@ class DealBriefGenerator:
 		if self._groq_client is None:
 			if not self._groq_api_key:
 				raise DealBriefConfigurationError(
-					"GROQ_API_KEY is required to generate a deal brief."
+					"GROQ_API_KEY_AI is required to generate a deal brief."
 				)
 			self._groq_client = Groq(api_key=self._groq_api_key)
 		return self._groq_client

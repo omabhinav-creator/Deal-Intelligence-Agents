@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DealMind | Profile</title>
+  <link rel="stylesheet" href="../assets/CSS/theme.css">
+  <link rel="stylesheet" href="../assets/CSS/profile.css">
+</head>
+<body>
+  <main class="profile-page">
+    <a class="back-link" href="dashboard.html">← Back to dashboard</a>
+    <section class="profile-card" aria-labelledby="profileTitle">
+      <div class="profile-avatar" id="profileAvatar" aria-hidden="true">?</div>
+      <p class="eyebrow">ACCOUNT</p>
+      <h1 id="profileTitle">Your profile</h1>
+      <p class="profile-status" id="profileStatus" role="status">Loading your account…</p>
+      <dl class="profile-details">
+        <div><dt>Full name</dt><dd id="profileName">—</dd></div>
+        <div><dt>Email</dt><dd id="profileEmail">—</dd></div>
+        <div><dt>Role</dt><dd id="profileRole">—</dd></div>
+        <div><dt>Member since</dt><dd id="profileCreated">—</dd></div>
+      </dl>
+      <form id="profileForm" hidden>
+        <label>Full name<input id="editName" required maxlength="120"></label>
+        <label>Email<input id="editEmail" type="email" required maxlength="320"></label>
+        <div class="actions"><button type="button" id="cancelEdit" class="secondary">Cancel</button><button type="submit">Save changes</button></div>
+      </form>
+      <div class="actions" id="profileActions"><button id="editProfile" type="button">Edit profile</button><button id="logout" type="button" class="secondary">Log out</button></div>
+    </section>
+  </main>
+  <script src="../assets/JS/theme.js"></script>
+  <script src="../assets/JS/api.js"></script>
+  <script src="../assets/JS/profile.js"></script>
+</body>
+</html>

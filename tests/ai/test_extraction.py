@@ -147,10 +147,10 @@ def test_unknown_fields_default_to_empty_and_missing_deal_id_is_safe():
 def test_extractor_requires_groq_key_when_not_given_a_mocked_client(monkeypatch):
 	monkeypatch.setattr(
 		"Hindsight.ai.extraction.get_settings",
-		lambda: SimpleNamespace(groq_api_key=None, groq_model="test-model"),
+		lambda: SimpleNamespace(ai_groq_api_key=None, groq_model="test-model"),
 	)
 
-	with pytest.raises(ExtractionConfigurationError, match="GROQ_API_KEY is required"):
+	with pytest.raises(ExtractionConfigurationError, match="GROQ_API_KEY_AI is required"):
 		SalesIntelligenceExtractor()
 
 

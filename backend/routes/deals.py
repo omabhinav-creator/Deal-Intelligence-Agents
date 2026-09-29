@@ -5,9 +5,12 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from motor.motor_asyncio import AsyncIOMotorDatabase
 
 from ..database import get_database
+from ..auth import get_current_user
 from ..schemas import DealCreate, DealResponse
 
-router = APIRouter(prefix="/api/deals", tags=["deals"])
+router = APIRouter(
+    prefix="/api/deals", tags=["deals"], dependencies=[Depends(get_current_user)]
+)
 DatabaseDependency = Annotated[AsyncIOMotorDatabase, Depends(get_database)]
 
 

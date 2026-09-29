@@ -14,15 +14,8 @@ logoutButton.className = "notification";
 logoutButton.setAttribute("aria-label", "Log out");
 logoutButton.title = "Log out";
 logoutButton.textContent = "↪";
-logoutButton.addEventListener("click", logout);
+logoutButton.addEventListener("click", DealMindAPI.logout);
 profile.appendChild(logoutButton);
-
-
-function logout() {
-    localStorage.removeItem("dealMindAuthenticated");
-    localStorage.removeItem("dealMindUser");
-    window.location.href = "auth.html";
-}
 
 
 /* =========================================

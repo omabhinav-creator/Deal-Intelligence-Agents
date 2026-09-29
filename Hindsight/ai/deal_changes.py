@@ -108,7 +108,7 @@ class DealChangeAnalyzer:
 		settings = get_settings()
 		self._memory_client = memory_client or HindsightMemoryClient()
 		self._groq_client = groq_client
-		self._groq_api_key = settings.groq_api_key
+		self._groq_api_key = settings.ai_groq_api_key
 		self._model = model or settings.groq_model
 
 	def analyze(self, deal_id: str) -> DealChangeAnalysis:
@@ -234,7 +234,7 @@ class DealChangeAnalyzer:
 		if not response.choices:
 			raise DealChangeError("Groq returned no deal change analysis.")
 		message = response.choices[0].message
-		if message.refusal:
+		if getattr(message, "refusal", None):
 			raise DealChangeError("Groq refused to analyze deal changes.")
 		if not message.content:
 			raise DealChangeError("Groq returned an empty deal change analysis.")
@@ -249,7 +249,7 @@ class DealChangeAnalyzer:
 		if self._groq_client is None:
 			if not self._groq_api_key:
 				raise DealChangeConfigurationError(
-					"GROQ_API_KEY is required to analyze deal changes."
+					"GROQ_API_KEY_AI is required to analyze deal changes."
 				)
 			self._groq_client = Groq(api_key=self._groq_api_key)
 		return self._groq_client

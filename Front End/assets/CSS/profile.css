@@ -1,0 +1,8 @@
+.profile-page { min-height: 100vh; padding: 48px 24px; background: var(--background); }
+.back-link { color: var(--primary); display: block; max-width: 620px; margin: 0 auto 18px; }
+.profile-card { max-width: 620px; margin: auto; padding: 36px; border: 1px solid var(--border); border-radius: 20px; background: var(--surface); box-shadow: var(--card-shadow); }
+.profile-avatar { width: 72px; height: 72px; display: grid; place-items: center; border-radius: 50%; background: var(--primary); color: var(--color-6); font-size: 26px; font-weight: 700; }
+.eyebrow { color: var(--accent); font-size: 12px; font-weight: 700; letter-spacing: .08em; margin-top: 24px; }
+.profile-details { display: grid; gap: 16px; margin: 28px 0; }.profile-details div { display:flex; justify-content:space-between; gap:24px; border-bottom:1px solid var(--border); padding-bottom:12px; }.profile-details dt { color:var(--text-secondary); }.profile-details dd { margin:0; text-align:right; }.profile-status { min-height: 24px; color: var(--text-secondary); }
+#profileForm { display:grid; gap:16px; } #profileForm label { display:grid; gap:6px; font-weight:600; } #profileForm input { padding:10px; border:1px solid var(--border); border-radius:8px; }
+.actions { display:flex; gap:12px; margin-top:24px; }.actions button { border:0; border-radius:8px; padding:10px 16px; background:var(--primary); color:var(--color-6); cursor:pointer; }.actions .secondary { background:transparent; border:1px solid var(--border); color:var(--text-primary); }

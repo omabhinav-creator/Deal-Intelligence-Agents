@@ -142,11 +142,11 @@ class SalesIntelligenceExtractor:
 		settings = get_settings()
 		self._model = model or settings.groq_model
 		if client is None:
-			if not settings.groq_api_key:
+			if not settings.ai_groq_api_key:
 				raise ExtractionConfigurationError(
-					"GROQ_API_KEY is required to extract sales intelligence."
+					"GROQ_API_KEY_AI is required to extract sales intelligence."
 				)
-			self._client = Groq(api_key=settings.groq_api_key)
+			self._client = Groq(api_key=settings.ai_groq_api_key)
 		else:
 			self._client = client
 

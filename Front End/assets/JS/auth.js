@@ -1,233 +1,79 @@
-/* ================================
-   DEALMIND AUTH JAVASCRIPT
-================================ */
-
 document.addEventListener("DOMContentLoaded", () => {
-
-    if (localStorage.getItem("dealMindAuthenticated") === "true") {
-        window.location.href = "dashboard.html";
-        return;
-    }
-
     const signinForm = document.getElementById("signinForm");
     const signupForm = document.getElementById("signupForm");
-
-    const showSignup = document.getElementById("showSignup");
-    const showSignin = document.getElementById("showSignin");
-
     const signInFormElement = document.getElementById("signInForm");
     const signUpFormElement = document.getElementById("signUpForm");
 
-    const themeToggle = document.getElementById("themeToggle");
-
-    const googleSignIn = document.getElementById("googleSignIn");
-    const googleSignUp = document.getElementById("googleSignUp");
-
-    const forgotPassword = document.getElementById("forgotPassword");
-
-
-    /* ================================
-       SWITCH SIGN IN / SIGN UP
-    ================================= */
-
-    showSignup.addEventListener("click", () => {
-
-        signinForm.classList.remove("active");
-        signupForm.classList.add("active");
-
-    });
-
-
-    showSignin.addEventListener("click", () => {
-
-        signupForm.classList.remove("active");
-        signinForm.classList.add("active");
-
-    });
-
-
-    /* ================================
-       PASSWORD VISIBILITY
-    ================================= */
-
-    const passwordToggles =
-        document.querySelectorAll(".password-toggle");
-
-    passwordToggles.forEach(toggle => {
-
-        toggle.addEventListener("click", () => {
-
-            const targetId = toggle.dataset.target;
-            const passwordInput =
-                document.getElementById(targetId);
-
-            if (passwordInput.type === "password") {
-
-                passwordInput.type = "text";
-                toggle.textContent = "Hide";
-
-            } else {
-
-                passwordInput.type = "password";
-                toggle.textContent = "Show";
-
-            }
-
-        });
-
-    });
-
-
-    /* ================================
-       SIGN IN
-    ================================= */
-
-    signInFormElement.addEventListener("submit", (event) => {
-
-        event.preventDefault();
-
-        const emailInput = document.getElementById("signinEmail");
-        const email = emailInput.value.trim();
-
-        const password =
-            document.getElementById("signinPassword").value.trim();
-
-        if (!email || !password) {
-            window.DealMindUI.showToast("Please fill in all fields.", "error");
-            return;
+    function showError(form, message) {
+        let error = form.querySelector(".auth-error");
+        if (!error) {
+            error = document.createElement("p");
+            error.className = "auth-error";
+            error.setAttribute("role", "alert");
+            form.querySelector("form").prepend(error);
         }
-
-        if (emailInput.validity.typeMismatch) {
-            window.DealMindUI.showToast("Enter a valid email address.", "error");
-            emailInput.focus();
-            return;
-        }
-
-        localStorage.setItem("dealMindAuthenticated", "true");
-        localStorage.setItem("dealMindUser", email);
-        window.location.href = "dashboard.html";
-
+        error.textContent = message;
+    }
+    function setBusy(form, busy) {
+        const button = form.querySelector("button[type='submit']");
+        button.disabled = busy;
+        button.dataset.label ||= button.textContent;
+        button.textContent = busy ? "Please wait…" : button.dataset.label;
+    }
+    document.getElementById("showSignup").addEventListener("click", () => {
+        signinForm.classList.remove("active"); signupForm.classList.add("active");
     });
-
-
-    /* ================================
-       SIGN UP
-    ================================= */
-
-    signUpFormElement.addEventListener("submit", (event) => {
-
+    document.getElementById("showSignin").addEventListener("click", () => {
+        signupForm.classList.remove("active"); signinForm.classList.add("active");
+    });
+    document.querySelectorAll(".password-toggle").forEach((toggle) => toggle.addEventListener("click", () => {
+        const input = document.getElementById(toggle.dataset.target);
+        input.type = input.type === "password" ? "text" : "password";
+        toggle.textContent = input.type === "password" ? "Show" : "Hide";
+    }));
+    signInFormElement.addEventListener("submit", async (event) => {
+        event.preventDefault(); setBusy(signinForm, true);
+        try {
+            const session = await DealMindAPI.request("/api/auth/login", { method: "POST", body: JSON.stringify({
+                email: document.getElementById("signinEmail").value.trim(),
+                password: document.getElementById("signinPassword").value,
+            }) });
+            DealMindAPI.saveSession(session);
+            window.location.assign("dashboard.html");
+        } catch (error) { showError(signinForm, error.message); }
+        finally { setBusy(signinForm, false); }
+    });
+    signUpFormElement.addEventListener("submit", async (event) => {
         event.preventDefault();
-
-        const name =
-            document.getElementById("signupName").value.trim();
-
+        const name = document.getElementById("signupName").value.trim();
         const emailInput = document.getElementById("signupEmail");
         const email = emailInput.value.trim();
-
-        const password =
-            document.getElementById("signupPassword").value.trim();
-
-        const terms =
-            document.getElementById("terms").checked;
-
-
-        if (!name || !email || !password) {
-
-            window.DealMindUI.showToast("Please fill in all fields.", "error");
-            return;
-
-        }
-
-        if (emailInput.validity.typeMismatch) {
-            window.DealMindUI.showToast("Enter a valid email address.", "error");
-            emailInput.focus();
-            return;
-        }
-
-
-        if (password.length < 8) {
-
-            window.DealMindUI.showToast("Password must contain at least 8 characters.", "error");
-            return;
-
-        }
-
-
-        if (!terms) {
-
-            window.DealMindUI.showToast("Please accept the Terms of Service.", "error");
-            return;
-
-        }
-
-
-        localStorage.setItem("dealMindAuthenticated", "true");
-        localStorage.setItem("dealMindUser", email);
-        window.location.href = "dashboard.html";
-
+        const password = document.getElementById("signupPassword").value;
+        if (!name || !email || !password) { showError(signupForm, "Please fill in all fields."); return; }
+        if (!emailInput.validity.valid) { showError(signupForm, "Enter a valid email address."); emailInput.focus(); return; }
+        if (password.length < 8) { showError(signupForm, "Password must contain at least 8 characters."); return; }
+        if (!document.getElementById("terms").checked) { showError(signupForm, "Please accept the Terms of Service."); return; }
+        showError(signupForm, "");
+        setBusy(signupForm, true);
+        try {
+            const session = await DealMindAPI.request("/api/auth/signup", { method: "POST", body: JSON.stringify({
+                name: document.getElementById("signupName").value.trim(),
+                email: document.getElementById("signupEmail").value.trim(),
+                password: document.getElementById("signupPassword").value,
+            }) });
+            DealMindAPI.saveSession(session);
+            window.location.assign("dashboard.html");
+        } catch (error) { showError(signupForm, error.message); }
+        finally { setBusy(signupForm, false); }
     });
-
-
-    /* ================================
-       GOOGLE BUTTONS
-    ================================= */
-
-    googleSignIn.addEventListener("click", () => {
-
-        window.DealMindUI.showToast(
-            "Google authentication will be connected when the backend is added.",
-            "info",
-        );
-
-    });
-
-
-    googleSignUp.addEventListener("click", () => {
-
-        window.DealMindUI.showToast(
-            "Google authentication will be connected when the backend is added.",
-            "info",
-        );
-
-    });
-
-
-    /* ================================
-       FORGOT PASSWORD
-    ================================= */
-
-    forgotPassword.addEventListener("click", (event) => {
-
+    ["googleSignIn", "googleSignUp"].forEach((id) => document.getElementById(id).addEventListener("click", () => {
+        showError(id === "googleSignIn" ? signinForm : signupForm, "Google sign-in is not available yet.");
+    }));
+    document.getElementById("forgotPassword").addEventListener("click", (event) => {
         event.preventDefault();
-
         const emailInput = document.getElementById("signinEmail");
-        const email = emailInput.value.trim();
-
-        if (!email) {
-
-            window.DealMindUI.showToast(
-                "Enter your email address first to reset your password.",
-                "error",
-            );
-
-            document.getElementById("signinEmail").focus();
-
-            return;
-
-        }
-
-        if (emailInput.validity.typeMismatch) {
-            window.DealMindUI.showToast("Enter a valid email address.", "error");
-            emailInput.focus();
-            return;
-        }
-
-        window.DealMindUI.showToast(
-            `Password reset instructions would be sent to ${email}.`,
-            "info",
-        );
-
+        if (!emailInput.value.trim()) { showError(signinForm, "Enter your email address first."); emailInput.focus(); return; }
+        if (!emailInput.validity.valid) { showError(signinForm, "Enter a valid email address."); emailInput.focus(); return; }
+        showError(signinForm, "Password reset is not available yet.");
     });
-
-
 });

@@ -62,7 +62,7 @@ class RecommendationExplainer:
 		settings = get_settings()
 		self._memory_client = memory_client or HindsightMemoryClient()
 		self._groq_client = groq_client
-		self._groq_api_key = settings.groq_api_key
+		self._groq_api_key = settings.ai_groq_api_key
 		self._model = model or settings.groq_model
 
 	def explain(self, deal_id: str, recommended_action: str) -> RecommendationExplanation:
@@ -180,7 +180,7 @@ class RecommendationExplainer:
 		if not response.choices:
 			raise RecommendationError("Groq returned no recommendation explanation.")
 		message = response.choices[0].message
-		if message.refusal:
+		if getattr(message, "refusal", None):
 			raise RecommendationError("Groq refused to explain the recommendation.")
 		if not message.content:
 			raise RecommendationError("Groq returned an empty recommendation explanation.")
@@ -195,7 +195,7 @@ class RecommendationExplainer:
 		if self._groq_client is None:
 			if not self._groq_api_key:
 				raise RecommendationConfigurationError(
-					"GROQ_API_KEY is required to explain recommendations."
+					"GROQ_API_KEY_AI is required to explain recommendations."
 				)
 			self._groq_client = Groq(api_key=self._groq_api_key)
 		return self._groq_client
