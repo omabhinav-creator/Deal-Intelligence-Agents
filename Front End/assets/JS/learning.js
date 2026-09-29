@@ -2,6 +2,15 @@
    DEALMIND — LEARNING JS
    ================================ */
 
+function showStaticDemoResult(title, message, sections = []) {
+  window.DealMindUI.showDialog({
+    title,
+    message,
+    sections,
+    note: "Static demo content; these values are not live AI or Hindsight results.",
+  });
+}
+
 
 /* ================================
    ANALYZE MY DEALS
@@ -35,14 +44,22 @@ analyzeBtn.addEventListener(
         false;
 
 
-      alert(
-        "Deal Analysis Complete\n\n" +
-        "DealMind analyzed 47 deals and identified:\n\n" +
-        "• 8 recurring winning patterns\n" +
-        "• 14 similar historical deals\n" +
-        "• 23 lessons from previous conversations\n\n" +
-        "New insight:\n" +
-        "Phased implementation has appeared in several successful enterprise deals."
+      showStaticDemoResult(
+        "Deal Analysis Complete",
+        "DealMind analyzed 47 deals and identified:",
+        [
+          {
+            items: [
+              "8 recurring winning patterns",
+              "14 similar historical deals",
+              "23 lessons from previous conversations",
+            ],
+          },
+          {
+            title: "New insight",
+            text: "Phased implementation has appeared in several successful enterprise deals.",
+          },
+        ],
       );
 
     }, 1400);
@@ -64,12 +81,16 @@ patternsBtn.addEventListener(
   "click",
   () => {
 
-    alert(
-      "Winning Patterns\n\n" +
-      "1. Phased Implementation — 75% success\n" +
-      "2. ROI Before Pricing — 67% success\n" +
-      "3. CTO-Focused Technical Proof — 71% success\n\n" +
-      "More patterns will appear as DealMind analyzes additional deals."
+    showStaticDemoResult(
+      "Winning Patterns",
+      "More patterns will appear as DealMind analyzes additional deals.",
+      [{
+        items: [
+          "1. Phased Implementation — 75% success",
+          "2. ROI Before Pricing — 67% success",
+          "3. CTO-Focused Technical Proof — 71% success",
+        ],
+      }],
     );
 
   }
@@ -89,14 +110,18 @@ similarBtn.addEventListener(
   "click",
   () => {
 
-    alert(
-      "Similar Deals\n\n" +
-      "14 deals match the current TechNova deal profile.\n\n" +
-      "The strongest matches share:\n" +
-      "• Enterprise customer profile\n" +
-      "• Negotiation stage\n" +
-      "• Technical stakeholder involvement\n" +
-      "• Implementation concerns"
+    showStaticDemoResult(
+      "Similar Deals",
+      "14 deals match the current TechNova deal profile.",
+      [{
+        title: "The strongest matches share",
+        items: [
+          "Enterprise customer profile",
+          "Negotiation stage",
+          "Technical stakeholder involvement",
+          "Implementation concerns",
+        ],
+      }],
     );
 
   }
@@ -150,9 +175,9 @@ autopsyButtons.forEach(button => {
       };
 
 
-      alert(
-        analyses[deal]
-      );
+      if (analyses[deal]) {
+        showStaticDemoResult("Deal Autopsy", analyses[deal]);
+      }
 
     }
   );
@@ -173,12 +198,12 @@ autopsyBtn.addEventListener(
   "click",
   () => {
 
-    alert(
-      "Deal Autopsy\n\n" +
+    showStaticDemoResult(
+      "Deal Autopsy",
       "DealMind has analyzed your recently closed deals.\n\n" +
-      "Won deals are analyzed for successful strategies.\n" +
-      "Lost deals are analyzed for missed signals and lessons.\n\n" +
-      "These insights feed into future deal recommendations."
+        "Won deals are analyzed for successful strategies.\n" +
+        "Lost deals are analyzed for missed signals and lessons.\n\n" +
+        "These insights feed into future deal recommendations.",
     );
 
   }

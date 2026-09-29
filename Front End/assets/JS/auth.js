@@ -86,14 +86,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
         event.preventDefault();
 
-        const email =
-            document.getElementById("signinEmail").value.trim();
+        const emailInput = document.getElementById("signinEmail");
+        const email = emailInput.value.trim();
 
         const password =
             document.getElementById("signinPassword").value.trim();
 
         if (!email || !password) {
-            alert("Please fill in all fields.");
+            window.DealMindUI.showToast("Please fill in all fields.", "error");
+            return;
+        }
+
+        if (emailInput.validity.typeMismatch) {
+            window.DealMindUI.showToast("Enter a valid email address.", "error");
+            emailInput.focus();
             return;
         }
 
@@ -115,8 +121,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const name =
             document.getElementById("signupName").value.trim();
 
-        const email =
-            document.getElementById("signupEmail").value.trim();
+        const emailInput = document.getElementById("signupEmail");
+        const email = emailInput.value.trim();
 
         const password =
             document.getElementById("signupPassword").value.trim();
@@ -127,15 +133,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (!name || !email || !password) {
 
-            alert("Please fill in all fields.");
+            window.DealMindUI.showToast("Please fill in all fields.", "error");
             return;
 
+        }
+
+        if (emailInput.validity.typeMismatch) {
+            window.DealMindUI.showToast("Enter a valid email address.", "error");
+            emailInput.focus();
+            return;
         }
 
 
         if (password.length < 8) {
 
-            alert("Password must contain at least 8 characters.");
+            window.DealMindUI.showToast("Password must contain at least 8 characters.", "error");
             return;
 
         }
@@ -143,7 +155,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (!terms) {
 
-            alert("Please accept the Terms of Service.");
+            window.DealMindUI.showToast("Please accept the Terms of Service.", "error");
             return;
 
         }
@@ -162,8 +174,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     googleSignIn.addEventListener("click", () => {
 
-        alert(
-            "Google authentication will be connected when the backend is added."
+        window.DealMindUI.showToast(
+            "Google authentication will be connected when the backend is added.",
+            "info",
         );
 
     });
@@ -171,8 +184,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     googleSignUp.addEventListener("click", () => {
 
-        alert(
-            "Google authentication will be connected when the backend is added."
+        window.DealMindUI.showToast(
+            "Google authentication will be connected when the backend is added.",
+            "info",
         );
 
     });
@@ -186,13 +200,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
         event.preventDefault();
 
-        const email =
-            document.getElementById("signinEmail").value.trim();
+        const emailInput = document.getElementById("signinEmail");
+        const email = emailInput.value.trim();
 
         if (!email) {
 
-            alert(
-                "Enter your email address first to reset your password."
+            window.DealMindUI.showToast(
+                "Enter your email address first to reset your password.",
+                "error",
             );
 
             document.getElementById("signinEmail").focus();
@@ -201,8 +216,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
         }
 
-        alert(
-            `Password reset instructions would be sent to ${email}.`
+        if (emailInput.validity.typeMismatch) {
+            window.DealMindUI.showToast("Enter a valid email address.", "error");
+            emailInput.focus();
+            return;
+        }
+
+        window.DealMindUI.showToast(
+            `Password reset instructions would be sent to ${email}.`,
+            "info",
         );
 
     });

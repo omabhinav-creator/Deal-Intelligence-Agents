@@ -296,6 +296,38 @@ button {
    DEAL HEADER
    ================================ */
 
+.deal-selection-empty[hidden] {
+  display: none;
+}
+
+.deal-header-card[hidden],
+.memory-stats[hidden],
+.memory-layout[hidden] {
+  display: none !important;
+}
+
+.deal-selection-empty {
+  margin: 1.5rem 0;
+  padding: clamp(1.25rem, 3vw, 2rem);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+  color: var(--text-primary);
+  box-shadow: var(--card-shadow);
+}
+
+.deal-selection-empty h2 {
+  margin: 0 0 0.5rem;
+  font-size: clamp(1.2rem, 2vw, 1.5rem);
+}
+
+.deal-selection-empty p {
+  margin: 0;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
 .deal-header-card {
   background: var(--card);
 

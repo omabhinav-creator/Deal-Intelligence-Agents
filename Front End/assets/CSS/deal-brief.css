@@ -1,0 +1,215 @@
+.deal-brief-panel {
+  width: 100%;
+  margin-top: 1.25rem;
+  padding: clamp(1rem, 2vw, 1.5rem);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+  color: var(--text-primary);
+  box-shadow: var(--card-shadow);
+}
+
+.deal-brief-panel[hidden] {
+  display: none;
+}
+
+.deal-brief-panel__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.deal-brief-panel__eyebrow {
+  margin: 0 0 0.35rem;
+  color: var(--accent);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+}
+
+.deal-brief-panel__header h2 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: clamp(1.15rem, 2vw, 1.45rem);
+}
+
+.deal-brief-panel__close {
+  display: grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--surface-secondary);
+  color: var(--text-primary);
+  font-size: 1.4rem;
+  line-height: 1;
+}
+
+.deal-brief-panel__close:hover {
+  border-color: var(--accent);
+}
+
+.deal-brief-panel__body {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.9rem;
+  padding-top: 1rem;
+}
+
+.deal-brief-panel__section {
+  min-width: 0;
+  padding: 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-secondary);
+}
+
+.deal-brief-panel__evidence-section {
+  grid-column: 1 / -1;
+}
+
+.deal-brief-evidence {
+  min-width: 0;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+}
+
+.deal-brief-evidence + .deal-brief-evidence {
+  margin-top: 0.75rem;
+}
+
+.deal-brief-evidence__content {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 1rem;
+  font-weight: 550;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.deal-brief-evidence__metadata {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem 1.25rem;
+  margin: 0.9rem 0 0;
+  padding-top: 0.8rem;
+  border-top: 1px solid var(--border);
+}
+
+.deal-brief-evidence__metadata > div {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.deal-brief-evidence__metadata dt,
+.deal-brief-evidence__id-label {
+  color: var(--text-secondary);
+  font-size: 0.7rem;
+  font-weight: 750;
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+}
+
+.deal-brief-evidence__metadata dd {
+  margin: 0.15rem 0 0;
+  color: var(--text-primary);
+  font-size: 0.84rem;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.deal-brief-evidence__id-details {
+  margin-top: 0.85rem;
+}
+
+.deal-brief-evidence__id-details summary {
+  width: fit-content;
+  color: var(--accent);
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 650;
+}
+
+.deal-brief-evidence__id-label {
+  display: block;
+  margin-top: 0.65rem;
+}
+
+.deal-brief-evidence__id-value {
+  display: block;
+  margin-top: 0.25rem;
+  color: var(--text-primary);
+  font-size: 0.82rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  user-select: text;
+}
+
+.deal-brief-panel__section h3 {
+  margin: 0 0 0.55rem;
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  font-weight: 750;
+  text-transform: uppercase;
+  letter-spacing: 0.045em;
+}
+
+.deal-brief-panel__section ul {
+  display: grid;
+  gap: 0.65rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.deal-brief-panel__section li,
+.deal-brief-panel__empty,
+.deal-brief-panel__loading,
+.deal-brief-panel__error {
+  color: var(--text-primary);
+  font-size: 0.92rem;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.deal-brief-panel__section li p {
+  margin: 0;
+}
+
+.deal-brief-panel__citations {
+  display: block;
+  margin-top: 0.25rem;
+  color: var(--text-secondary);
+  font-size: 0.76rem;
+}
+
+.deal-brief-panel__loading,
+.deal-brief-panel__error,
+.deal-brief-panel__empty {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 0.5rem 0;
+}
+
+.deal-brief-panel__error {
+  color: #b42318;
+}
+
+body.dark .deal-brief-panel__error {
+  color: #ffb4ab;
+}
+
+@media (max-width: 600px) {
+  .deal-brief-panel__body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

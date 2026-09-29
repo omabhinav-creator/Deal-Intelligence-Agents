@@ -16,6 +16,8 @@
 
     <link rel="stylesheet" href="../assets/CSS/dashboard.css">
     <link rel="stylesheet" href="../assets/CSS/theme.css">
+    <link rel="stylesheet" href="../assets/CSS/deal-brief.css">
+    <link rel="stylesheet" href="../assets/CSS/ui-components.css">
 </head>
 
 <body>
@@ -92,6 +94,7 @@
     =========================== -->
 
     <main class="main">
+        <p class="deal-memory-demo-notice" role="note">Dashboard deal cards, pipeline figures, and risk summaries are static frontend demo content. Generate Deal Brief is the API-backed intelligence action on this page.</p>
 
         <!-- TOP BAR -->
 
@@ -107,13 +110,11 @@
 
             <div class="profile">
 
-                <button class="notification" aria-label="Notifications">
+                <button type="button" class="notification" data-notifications-trigger aria-label="Notifications" aria-expanded="false">
                     ♧
                 </button>
 
-                <div class="avatar">
-                    SA
-                </div>
+                <a class="avatar" id="dashboardProfileLink" href="settings.html#profile" aria-label="Open profile">U</a>
 
             </div>
 
@@ -545,18 +546,26 @@
             <button
                 class="ai-button"
                 id="briefButton"
+                data-deal-brief-trigger
+                data-deal-name="TechNova"
             >
                 Generate Deal Brief →
             </button>
 
         </section>
 
+        <div id="dealBriefPanelMount"></div>
+
     </main>
 
 </div>
 
 <script src="../assets/JS/theme.js"></script>
+<script src="../assets/JS/ui-components.js"></script>
+<script src="../assets/JS/active-deals.js"></script>
 <script src="../assets/JS/dashboard.js"></script>
+<script src="../assets/JS/profile.js"></script>
+<script src="../assets/JS/deal-brief.js"></script>
 
 </body>
 </html>

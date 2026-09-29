@@ -2,107 +2,104 @@
    DEALMIND — DEAL MEMORY JS
    ================================ */
 
+const dealQuery = new URLSearchParams(window.location.search);
+const requestedDealId = dealQuery.get("deal_id");
+const requestedDealName = dealQuery.get("deal_name");
+const knownDeals = window.DealMindActiveDeals || {};
+const requestedDeal = Object.entries(knownDeals).find(([name, deal]) =>
+  (requestedDealId && deal.dealId === requestedDealId)
+  || (!requestedDealId && name === requestedDealName && deal.dealId),
+);
+const selectedDealId = requestedDealId || requestedDeal?.[1]?.dealId || null;
+const selectedDealName = requestedDealName || requestedDeal?.[0] || "Selected deal";
+const isTechNovaDeal = selectedDealId === knownDeals.TechNova?.dealId
+  && (!requestedDealName || requestedDealName === "TechNova");
+const briefTrigger = document.querySelector("[data-deal-brief-trigger]");
+if (briefTrigger) {
+  briefTrigger.dataset.dealName = selectedDealName;
+  briefTrigger.disabled = !selectedDealId;
+}
+
+if (!isTechNovaDeal) {
+  const emptyState = document.getElementById("dealSelectionEmpty");
+  const dealHeader = document.querySelector(".deal-header-card");
+  const memoryStats = document.querySelector(".memory-stats");
+  const memoryLayout = document.querySelector(".memory-layout");
+  const heading = document.createElement("h2");
+  heading.textContent = selectedDealName;
+  const message = document.createElement("p");
+  message.textContent = selectedDealId
+    ? "No deal-specific intelligence is available yet because this page has no verified memory data for the selected deal. No other deal's evidence is shown."
+    : "This deal has no canonical deal ID configured, so DealMind cannot check its Hindsight memories. No deal-specific intelligence is shown.";
+  emptyState.appendChild(heading);
+  emptyState.appendChild(message);
+  if (selectedDealId) {
+    const briefButton = document.createElement("button");
+    briefButton.type = "button";
+    briefButton.className = "primary-btn";
+    briefButton.dataset.dealBriefTrigger = "";
+    briefButton.dataset.dealName = selectedDealName;
+    briefButton.textContent = "Load Deal Brief from API";
+    emptyState.appendChild(briefButton);
+  }
+  emptyState.hidden = false;
+
+  [dealHeader, memoryStats, memoryLayout].forEach((section) => {
+    if (section) section.hidden = true;
+  });
+}
+
+if (isTechNovaDeal) {
+  const demoNotice = document.createElement("p");
+  demoNotice.className = "deal-memory-demo-notice";
+  demoNotice.setAttribute("role", "note");
+  demoNotice.textContent = "The timeline, counts, and category summaries on this page are static TechNova demo content. The Deal Brief button loads the selected deal's current API result.";
+  document.querySelector(".deal-header-card")?.after(demoNotice);
+}
+
 
 /* ================================
    FILTER BUTTON
    ================================ */
 
 const filterBtn = document.getElementById("filterBtn");
+const memoryFilters = [
+  "All",
+  "Requirements",
+  "Objection",
+  "Competitor",
+  "Stakeholder",
+  "Strategy",
+];
+let activeMemoryFilter = "All";
 
 filterBtn.addEventListener("click", () => {
-
   const items = document.querySelectorAll(".timeline-item");
-
-  const filters = [
-    "All",
-    "Requirements",
-    "Objection",
-    "Competitor",
-    "Stakeholder",
-    "Strategy"
-  ];
-
-  const selected = prompt(
-    "Filter memory by:\n\n" +
-    "1. All\n" +
-    "2. Requirements\n" +
-    "3. Objection\n" +
-    "4. Competitor\n" +
-    "5. Stakeholder\n" +
-    "6. Strategy"
-  );
-
-  if (!selected) return;
-
-  const index = parseInt(selected) - 1;
-
-  if (index < 0 || index >= filters.length) {
-    alert("Please choose a number between 1 and 6.");
-    return;
-  }
-
-  const filter = filters[index];
-
-  items.forEach(item => {
-
-    if (filter === "All") {
-      item.style.display = "grid";
-      return;
-    }
-
-    const type = item
-      .querySelector(".memory-type")
-      .textContent
-      .trim();
-
-    if (type.toLowerCase() === filter.toLowerCase()) {
-      item.style.display = "grid";
-    } else {
-      item.style.display = "none";
-    }
-
+  window.DealMindUI.showSelector({
+    title: "Filter memory",
+    message: "Choose a category to show in the memory timeline.",
+    selectedValue: activeMemoryFilter,
+    options: memoryFilters.map((filter) => ({ value: filter, label: filter })),
+    onSelect(filter) {
+      if (!memoryFilters.includes(filter)) {
+        window.DealMindUI.showToast("Choose a listed memory category.", "error");
+        return;
+      }
+      activeMemoryFilter = filter;
+      items.forEach((item) => {
+        const type = item.querySelector(".memory-type")?.textContent.trim();
+        item.style.display = filter === "All" || type?.toLowerCase() === filter.toLowerCase()
+          ? "grid"
+          : "none";
+      });
+    },
   });
-
 });
 
 
 /* ================================
    GENERATE DEAL BRIEF
    ================================ */
-
-const briefBtn = document.getElementById("briefBtn");
-
-briefBtn.addEventListener("click", () => {
-
-  const originalHTML = briefBtn.innerHTML;
-
-  briefBtn.innerHTML = `
-    <i class="fa-solid fa-spinner fa-spin"></i>
-    Generating...
-  `;
-
-  briefBtn.disabled = true;
-
-  setTimeout(() => {
-
-    briefBtn.innerHTML = originalHTML;
-    briefBtn.disabled = false;
-
-    alert(
-      "AI Deal Brief\n\n" +
-      "TechNova is currently in the negotiation stage.\n\n" +
-      "• Deal Value: $120K\n" +
-      "• Main Concern: Implementation cost\n" +
-      "• Competitor: Salesforce\n" +
-      "• Decision Maker: Rahul Mehta, CTO\n" +
-      "• Positive Signal: Customer responded well to a phased implementation plan\n\n" +
-      "Suggested focus: Address implementation risk and connect the pricing discussion to measurable business value."
-    );
-
-  }, 1200);
-
-});
-
 
 /* ================================
    CATEGORY BUTTONS
@@ -134,12 +131,11 @@ categoryButtons.forEach(button => {
 
     };
 
-    alert(
-      category.charAt(0).toUpperCase() +
-      category.slice(1) +
-      "\n\n" +
-      messages[category]
-    );
+    window.DealMindUI.showDialog({
+      title: category.charAt(0).toUpperCase() + category.slice(1),
+      message: messages[category],
+      note: "Static demo summary; this is not a live Hindsight result.",
+    });
 
   });
 

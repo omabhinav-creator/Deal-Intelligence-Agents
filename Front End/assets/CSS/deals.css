@@ -1105,6 +1105,61 @@ body.dark .view-button {
     display: flex;
 }
 
+.risk-analysis-list {
+    display: grid;
+    gap: 12px;
+    margin: 0;
+    padding-left: 2.25rem;
+}
+
+.risk-analysis-list li {
+    padding-left: 0.25rem;
+    color: var(--text-secondary);
+}
+
+.risk-analysis-item {
+    display: block;
+    min-width: 0;
+    padding: 15px 16px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface-secondary);
+    color: var(--text-primary);
+    text-decoration: none;
+    transition: border-color 0.18s ease, transform 0.18s ease;
+}
+
+.risk-analysis-item:hover,
+.risk-analysis-item:focus-visible {
+    border-color: var(--accent);
+    color: var(--text-primary);
+    transform: translateY(-1px);
+}
+
+.risk-analysis-item__name {
+    display: block;
+    font-size: 15px;
+    font-weight: 750;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+}
+
+.risk-analysis-item__risk {
+    display: block;
+    margin-top: 5px;
+    color: var(--text-secondary);
+    font-size: 13px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+@media (max-width: 520px) {
+    .risk-analysis-list {
+        gap: 9px;
+        padding-left: 1.8rem;
+    }
+}
+
 
 .deal-modal {
 
@@ -1251,6 +1306,7 @@ body.dark .view-button {
 
 .modal-primary {
 
+    display: block;
     width: 100%;
 
     border: none;
@@ -1266,6 +1322,10 @@ body.dark .view-button {
     font-size: 11px;
 
     font-weight: 700;
+
+    text-align: center;
+
+    text-decoration: none;
 }
 
 

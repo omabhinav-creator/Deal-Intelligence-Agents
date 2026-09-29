@@ -8,6 +8,7 @@
 
   <link rel="stylesheet" href="../assets/CSS/aicopilot.css" />
   <link rel="stylesheet" href="../assets/CSS/theme.css" />
+  <link rel="stylesheet" href="../assets/CSS/ui-components.css" />
 
   <link
     rel="stylesheet"
@@ -64,18 +65,18 @@
 
     <div class="sidebar-bottom">
 
-      <div class="user-profile">
+      <a class="user-profile" href="settings.html#profile">
 
         <div class="avatar">
           SS
         </div>
 
         <div>
-          <strong>Sahasra</strong>
-          <span>Sales Manager</span>
+          <strong data-profile-name>Current user</strong>
+          <span data-profile-email></span>
         </div>
 
-      </div>
+      </a>
 
     </div>
 
@@ -115,13 +116,13 @@
           <i class="fa-solid fa-moon"></i>
         </button>
 
-        <div class="notification">
+        <button type="button" class="notification" data-notifications-trigger aria-label="Notifications" aria-expanded="false">
 
           <i class="fa-regular fa-bell"></i>
 
           <span></span>
 
-        </div>
+        </button>
 
       </div>
 
@@ -137,7 +138,7 @@
 
       <div class="selector-left">
 
-        <div class="company-logo">
+        <div class="company-logo" id="selectedDealLogo">
           TN
         </div>
 
@@ -147,23 +148,23 @@
             Working with
           </span>
 
-          <h2>TechNova</h2>
+          <h2 id="selectedDealName">TechNova</h2>
 
           <div class="deal-meta">
 
-            <span>
+            <span id="selectedDealValue">
               <i class="fa-solid fa-dollar-sign"></i>
-              $120K
+              <span>$120K</span>
             </span>
 
-            <span>
+            <span id="selectedDealStage">
               <i class="fa-solid fa-arrow-trend-up"></i>
-              Negotiation
+              <span>Negotiation</span>
             </span>
 
-            <span class="medium-risk">
+            <span class="medium-risk" id="selectedDealRisk">
               <i class="fa-solid fa-circle"></i>
-              Medium Risk
+              <span>Medium Risk</span>
             </span>
 
           </div>
@@ -182,6 +183,8 @@
       </button>
 
     </section>
+
+    <p class="deal-memory-demo-notice" role="note">Selected deal values are static frontend demo records. Copilot chat has no live API connection in this build.</p>
 
 
 
@@ -209,7 +212,7 @@
             <h3>DealMind Copilot</h3>
 
             <p>
-              Ask anything about TechNova
+              Ask about the selected deal
             </p>
 
           </div>
@@ -239,10 +242,7 @@
               </span>
 
               <p>
-                Hey! I've reviewed the memory of your
-                TechNova deal. I can help you understand
-                what changed, prepare for your next meeting,
-                or suggest the next best action.
+                Copilot chat is not connected to a live API yet. This page will not invent deal answers. Use Open Deal Intelligence to request a Deal Brief for deals with a configured canonical ID.
               </p>
 
             </div>
@@ -315,7 +315,7 @@
 
           <i class="fa-solid fa-sparkles"></i>
 
-          AI responses are based on your deal memory.
+          Copilot chat is not connected to a live response API.
 
         </div>
 
@@ -445,7 +445,7 @@
 
         <!-- WHY -->
 
-        <div class="why-card">
+        <div class="why-card" id="staticWhyDemo">
 
           <div class="why-header">
 
@@ -455,10 +455,8 @@
 
           </div>
 
-          <p>
-            Based on TechNova's previous conversations,
-            implementation cost has been their most
-            consistent concern.
+      <p>
+            Static TechNova example only; not a live recommendation or evidence result.
           </p>
 
           <div class="reason">
@@ -494,7 +492,7 @@
          RECENT CONTEXT
          ================================ -->
 
-    <section class="context-section">
+    <section class="context-section" id="staticContextDemo">
 
       <div class="section-header">
 
@@ -503,7 +501,7 @@
           <h3>Recent Deal Context</h3>
 
           <p>
-            Information the Copilot is using right now.
+            Static TechNova demo context; not live Copilot or Hindsight data.
           </p>
 
         </div>
@@ -611,6 +609,9 @@
 
 
   <script src="../assets/JS/theme.js"></script>
+  <script src="../assets/JS/ui-components.js"></script>
+  <script src="../assets/JS/active-deals.js"></script>
+  <script src="../assets/JS/profile.js"></script>
   <script src="../assets/JS/aicopilot.js"></script>
 
 </body>

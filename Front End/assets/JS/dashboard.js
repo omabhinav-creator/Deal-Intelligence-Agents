@@ -72,41 +72,4 @@ navItems.forEach((item) => {
 });
 
 
-/* =========================================
-   AI DEAL BRIEF
-========================================= */
-
-const briefButton =
-    document.getElementById("briefButton");
-
-
-briefButton.addEventListener(
-    "click",
-    () => {
-
-        briefButton.textContent =
-            "Generating brief...";
-
-        briefButton.disabled = true;
-
-
-        setTimeout(() => {
-
-            alert(
-                "Deal Brief ready!\n\n" +
-                "TechNova's primary concern is " +
-                "implementation cost. " +
-                "Salesforce is also being evaluated."
-            );
-
-            briefButton.textContent =
-                "Generate Deal Brief →";
-
-            briefButton.disabled = false;
-
-        }, 1000);
-
-    }
-);
-
 }

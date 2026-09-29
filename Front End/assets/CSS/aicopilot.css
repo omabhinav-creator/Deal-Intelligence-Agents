@@ -1262,3 +1262,19 @@ body.dark .action-badge.recommended {
     flex-direction: column;
   }
 }
+
+.deal-meta .low-risk {
+  color: #16804a;
+}
+
+.deal-meta .high-risk {
+  color: #b42318;
+}
+
+body.dark .deal-meta .low-risk {
+  color: #75d49a;
+}
+
+body.dark .deal-meta .high-risk {
+  color: #ff9b91;
+}

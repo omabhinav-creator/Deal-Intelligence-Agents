@@ -17,6 +17,7 @@
 
     <link rel="stylesheet" href="../assets/CSS/deals.css">
     <link rel="stylesheet" href="../assets/CSS/theme.css">
+    <link rel="stylesheet" href="../assets/CSS/ui-components.css">
 </head>
 
 <body>
@@ -116,7 +117,7 @@
 
             <div class="profile">
 
-                <button class="notification">
+                <button type="button" class="notification" data-notifications-trigger aria-label="Notifications" aria-expanded="false">
                     ♧
                 </button>
 
@@ -852,6 +853,8 @@
             Enterprise CRM
         </p>
 
+        <p class="modal-demo-note">Deal details and recent-memory text shown here are static frontend demo content, not a live CRM or Hindsight response.</p>
+
         <div class="modal-grid">
 
             <div>
@@ -889,9 +892,9 @@
 
         </div>
 
-        <button class="modal-primary">
+        <a class="modal-primary" id="modalOpenDeal" href="dealmemory.html">
             Open Deal Intelligence →
-        </button>
+        </a>
 
     </div>
 
@@ -899,6 +902,8 @@
 
 
 <script src="../assets/JS/theme.js"></script>
+<script src="../assets/JS/ui-components.js"></script>
+<script src="../assets/JS/active-deals.js"></script>
 <script src="../assets/JS/deals.js"></script>
 
 </body>

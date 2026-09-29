@@ -226,147 +226,11 @@ const modalMemory =
         "modalMemory"
     );
 
-
-const dealData = {
-
-    "TechNova": {
-
-        description:
-            "Enterprise CRM",
-
-        value:
-            "$120K",
-
-        stage:
-            "Negotiation",
-
-        risk:
-            "Medium",
-
-        competitor:
-            "Salesforce",
-
-        memory:
-            "CTO raised implementation concerns during the previous conversation."
-
-    },
+const modalOpenDeal =
+    document.getElementById("modalOpenDeal");
 
 
-    "Acme Corp": {
-
-        description:
-            "Business Platform",
-
-        value:
-            "$85K",
-
-        stage:
-            "Proposal",
-
-        risk:
-            "Low",
-
-        competitor:
-            "HubSpot",
-
-        memory:
-            "Customer requested revised pricing before moving forward."
-
-    },
-
-
-    "Nova Systems": {
-
-        description:
-            "AI Infrastructure",
-
-        value:
-            "$210K",
-
-        stage:
-            "Negotiation",
-
-        risk:
-            "High",
-
-        competitor:
-            "Oracle",
-
-        memory:
-            "Customer mentioned Oracle as an alternative during the latest discussion."
-
-    },
-
-
-    "GlobalLink": {
-
-        description:
-            "Sales Automation",
-
-        value:
-            "$65K",
-
-        stage:
-            "Discovery",
-
-        risk:
-            "Low",
-
-        competitor:
-            "Microsoft",
-
-        memory:
-            "A new stakeholder joined the deal and requested a product overview."
-
-    },
-
-
-    "Vertex Labs": {
-
-        description:
-            "Analytics Suite",
-
-        value:
-            "$145K",
-
-        stage:
-            "Proposal",
-
-        risk:
-            "Medium",
-
-        competitor:
-            "HubSpot",
-
-        memory:
-            "Customer asked about integration capabilities."
-
-    },
-
-
-    "Quantum Systems": {
-
-        description:
-            "Cloud Platform",
-
-        value:
-            "$180K",
-
-        stage:
-            "Negotiation",
-
-        risk:
-            "High",
-
-        competitor:
-            "AWS",
-
-        memory:
-            "Procurement team raised concerns about contract terms."
-
-    }
-
-};
+const dealData = window.DealMindActiveDeals;
 
 
 /* OPEN MODAL */
@@ -384,9 +248,15 @@ viewButtons.forEach((button) => {
             const dealName =
                 button.dataset.deal;
 
-            const deal =
-                dealData[dealName];
+            const deal = dealData[dealName];
+            const query = new URLSearchParams();
+            if (deal && deal.dealId) {
+                query.set("deal_id", deal.dealId);
+            }
+            query.set("deal_name", dealName);
 
+            modalOpenDeal.href =
+                `dealmemory.html?${query.toString()}`;
 
             if (!deal) return;
 
@@ -474,6 +344,48 @@ const analyzeButton =
         "analyzeButton"
     );
 
+const riskAnalysisDeals = [
+    { name: "TechNova", risk: "Implementation concern" },
+    { name: "Nova Systems", risk: "Competitor pressure" },
+    { name: "Quantum Systems", risk: "Procurement concern" },
+];
+
+function openRiskAnalysis() {
+    window.DealMindUI.showDialog({
+        title: "AI Risk Analysis",
+        message: `${riskAnalysisDeals.length} deals need attention`,
+        size: "wide",
+        note: "These are the existing static frontend demo values, not live AI or Hindsight risk results.",
+        contentBuilder(body) {
+            const list = document.createElement("ol");
+            list.className = "risk-analysis-list";
+            riskAnalysisDeals.forEach((deal) => {
+                const item = document.createElement("li");
+                const dealRecord = dealData[deal.name];
+                const query = new URLSearchParams();
+                if (dealRecord && dealRecord.dealId) {
+                    query.set("deal_id", dealRecord.dealId);
+                }
+                query.set("deal_name", deal.name);
+
+                const link = document.createElement("a");
+                link.className = "risk-analysis-item";
+                link.href = `dealmemory.html?${query.toString()}`;
+                const name = document.createElement("span");
+                name.className = "risk-analysis-item__name";
+                name.textContent = deal.name;
+                const risk = document.createElement("span");
+                risk.className = "risk-analysis-item__risk";
+                risk.textContent = `Risk: ${deal.risk}`;
+                link.append(name, risk);
+                item.appendChild(link);
+                list.appendChild(item);
+            });
+            body.appendChild(list);
+        },
+    });
+}
+
 
 analyzeButton.addEventListener(
     "click",
@@ -487,15 +399,7 @@ analyzeButton.addEventListener(
 
 
         setTimeout(() => {
-
-            alert(
-                "AI Risk Analysis\n\n" +
-                "3 deals need attention:\n\n" +
-                "• TechNova — Implementation concern\n" +
-                "• Nova Systems — Competitor pressure\n" +
-                "• Quantum Systems — Procurement concern"
-            );
-
+            openRiskAnalysis();
 
             analyzeButton.textContent =
                 "Analyze Risks →";

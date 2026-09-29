@@ -246,33 +246,17 @@ document.addEventListener("DOMContentLoaded", () => {
     editProfileButton.addEventListener(
         "click",
         () => {
-
-            const newName =
-                prompt(
-                    "Enter your name:",
-                    profileName.textContent
-                );
-
-            if (!newName || !newName.trim()) {
-                return;
-            }
-
-            const cleanName =
-                newName.trim();
-
-            profileName.textContent =
-                cleanName;
-
-            profileAvatar.textContent =
-                cleanName
-                    .charAt(0)
-                    .toUpperCase();
-
-            localStorage.setItem(
-                "dealMindName",
-                cleanName
-            );
-
+            window.DealMindUI.showInputDialog({
+                title: "Edit profile",
+                label: "Your name",
+                value: profileName.textContent,
+                submitLabel: "Save name",
+                onSubmit(cleanName) {
+                    profileName.textContent = cleanName;
+                    profileAvatar.textContent = cleanName.charAt(0).toUpperCase();
+                    localStorage.setItem("dealMindName", cleanName);
+                },
+            });
         }
     );
 
@@ -305,8 +289,9 @@ document.addEventListener("DOMContentLoaded", () => {
         "click",
         () => {
 
-            alert(
-                "Password change functionality will be connected to the backend."
+            window.DealMindUI.showToast(
+                "Password change functionality will be connected to the backend.",
+                "info",
             );
 
         }
