@@ -83,7 +83,7 @@ Install dependencies and start the API with:
 
 ```powershell
 python -m pip install -r requirements.txt
-python -m uvicorn app:app --reload
+python -m uvicorn backend.main:app --reload
 ```
 
 The local API is available at `http://127.0.0.1:8000` and its interactive

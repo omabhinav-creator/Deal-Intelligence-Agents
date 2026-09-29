@@ -101,6 +101,8 @@ class SimilarDealsAnalysis(BaseModel):
 class SimilarDealsFinder:
     """Use one existing Hindsight client and Groq to compare deal evidence."""
 
+    _MAX_SEARCH_FACT_CHARS = 1200
+
     def __init__(
         self,
         memory_client: HindsightMemoryClient | None = None,
@@ -110,7 +112,7 @@ class SimilarDealsFinder:
         settings = get_settings()
         self._memory_client = memory_client or HindsightMemoryClient()
         self._groq_client = groq_client
-        self._groq_api_key = settings.groq_api_key
+        self._groq_api_key = settings.ai_groq_api_key
         self._model = model or settings.groq_model
 
     def find_similar_deals(self, current_deal_id: str) -> SimilarDealsAnalysis:
@@ -192,14 +194,22 @@ class SimilarDealsFinder:
         current_deal_id: str,
         evidence: list[BriefEvidence],
     ) -> str:
-        facts = "\n".join(
-            f"- {item.memory_type or 'fact'}: {item.content}" for item in evidence
-        )
+        facts: list[str] = []
+        remaining = SimilarDealsFinder._MAX_SEARCH_FACT_CHARS
+        for item in evidence:
+            fact = f"- {item.memory_type or 'fact'}: {item.content}"
+            if len(fact) > remaining:
+                fact = fact[: max(remaining - 3, 0)].rstrip() + "..."
+            if fact:
+                facts.append(fact)
+                remaining -= len(fact) + 1
+            if remaining <= 0:
+                break
         return (
             f"Find historical deal memories similar to current deal {current_deal_id}. "
             "Search for overlap in objections, requirements, stakeholder concerns, "
             "competitors, pricing, buying signals, risks, outcomes, and lessons. "
-            f"Current deal facts:\n{facts}"
+            f"Current deal facts:\n{'\n'.join(facts)}"
         )
 
     @staticmethod
@@ -284,7 +294,7 @@ class SimilarDealsFinder:
         if not response.choices:
             raise SimilarDealsError("Groq returned no similar-deal comparison.")
         message = response.choices[0].message
-        if message.refusal:
+        if getattr(message, "refusal", None):
             raise SimilarDealsError("Groq refused to compare historical deals.")
         if not message.content:
             raise SimilarDealsError("Groq returned an empty similar-deal comparison.")
@@ -414,7 +424,7 @@ class SimilarDealsFinder:
         if self._groq_client is None:
             if not self._groq_api_key:
                 raise SimilarDealsConfigurationError(
-                    "GROQ_API_KEY is required to compare similar deals."
+                    "GROQ_API_KEY_AI is required to compare similar deals."
                 )
             self._groq_client = Groq(api_key=self._groq_api_key)
         return self._groq_client

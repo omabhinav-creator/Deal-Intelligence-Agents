@@ -91,7 +91,7 @@ class DealAutopsyAnalyzer:
         settings = get_settings()
         self._memory_client = memory_client or HindsightMemoryClient()
         self._groq_client = groq_client
-        self._groq_api_key = settings.groq_api_key
+        self._groq_api_key = settings.ai_groq_api_key
         self._model = model or settings.groq_model
 
     def analyze(self, deal_id: str, outcome: DealOutcome | str) -> DealAutopsy:
@@ -166,7 +166,7 @@ class DealAutopsyAnalyzer:
         if not response.choices:
             raise DealAutopsyError("Groq returned no deal-autopsy analysis.")
         message = response.choices[0].message
-        if message.refusal:
+        if getattr(message, "refusal", None):
             raise DealAutopsyError("Groq refused to analyze the deal.")
         if not message.content:
             raise DealAutopsyError("Groq returned an empty deal-autopsy analysis.")
@@ -216,7 +216,7 @@ class DealAutopsyAnalyzer:
         if self._groq_client is None:
             if not self._groq_api_key:
                 raise DealAutopsyConfigurationError(
-                    "GROQ_API_KEY is required to generate a deal autopsy."
+                    "GROQ_API_KEY_AI is required to generate a deal autopsy."
                 )
             self._groq_client = Groq(api_key=self._groq_api_key)
         return self._groq_client

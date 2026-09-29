@@ -145,7 +145,7 @@ class OutcomeLearningService:
 		settings = get_settings()
 		self._memory_client = memory_client or HindsightMemoryClient()
 		self._groq_client = groq_client
-		self._groq_api_key = settings.groq_api_key
+		self._groq_api_key = settings.ai_groq_api_key
 		self._model = model or settings.groq_model
 
 	def learn_from_outcome(
@@ -303,7 +303,7 @@ class OutcomeLearningService:
 		if not response.choices:
 			raise OutcomeLearningError("Groq returned no outcome-learning analysis.")
 		message = response.choices[0].message
-		if message.refusal:
+		if getattr(message, "refusal", None):
 			raise OutcomeLearningError("Groq refused to analyze the deal outcome.")
 		if not message.content:
 			raise OutcomeLearningError("Groq returned an empty outcome-learning analysis.")
@@ -370,7 +370,7 @@ class OutcomeLearningService:
 		if self._groq_client is None:
 			if not self._groq_api_key:
 				raise OutcomeLearningConfigurationError(
-					"GROQ_API_KEY is required to learn from deal outcomes."
+					"GROQ_API_KEY_AI is required to learn from deal outcomes."
 				)
 			self._groq_client = Groq(api_key=self._groq_api_key)
 		return self._groq_client

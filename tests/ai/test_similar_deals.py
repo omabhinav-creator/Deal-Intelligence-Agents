@@ -9,6 +9,7 @@ import pytest
 from groq import Groq
 
 from backend.memory.hindsight_client import HindsightMemoryClient
+from Hindsight.ai.deal_brief import BriefEvidence
 from Hindsight.ai.deal_changes import ChangeCategory, ChangeType, EvidenceBasis
 from Hindsight.ai.similar_deals import (
     HistoricalDealFact,
@@ -294,6 +295,23 @@ def test_no_historical_deals_returns_clear_insufficient_result_without_groq():
     assert "No other historical" in (result.message or "")
     assert memory_client.recall_memory.call_count == 2
     groq_mock.chat.completions.create.assert_not_called()
+
+
+def test_historical_search_query_bounds_current_memory_text():
+    evidence = [
+        BriefEvidence(
+            memory_id=f"memory-{index}",
+            content=f"fact {index} " + ("detail " * 80),
+            memory_type="objection",
+        )
+        for index in range(20)
+    ]
+
+    query = SimilarDealsFinder._build_historical_query(CURRENT_DEAL, evidence)
+
+    assert len(query) < 1600
+    assert "Current deal facts:" in query
+    assert "memory-0" not in query
 
 
 def test_current_deal_is_excluded_from_historical_candidates():

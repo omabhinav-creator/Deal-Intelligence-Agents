@@ -1,211 +1,67 @@
-/* ================================
-   DEALMIND AUTH JAVASCRIPT
-================================ */
-
 document.addEventListener("DOMContentLoaded", () => {
-
-    if (localStorage.getItem("dealMindAuthenticated") === "true") {
-        window.location.href = "dashboard.html";
-        return;
-    }
-
     const signinForm = document.getElementById("signinForm");
     const signupForm = document.getElementById("signupForm");
-
-    const showSignup = document.getElementById("showSignup");
-    const showSignin = document.getElementById("showSignin");
-
     const signInFormElement = document.getElementById("signInForm");
     const signUpFormElement = document.getElementById("signUpForm");
 
-    const themeToggle = document.getElementById("themeToggle");
-
-    const googleSignIn = document.getElementById("googleSignIn");
-    const googleSignUp = document.getElementById("googleSignUp");
-
-    const forgotPassword = document.getElementById("forgotPassword");
-
-
-    /* ================================
-       SWITCH SIGN IN / SIGN UP
-    ================================= */
-
-    showSignup.addEventListener("click", () => {
-
-        signinForm.classList.remove("active");
-        signupForm.classList.add("active");
-
+    function showError(form, message) {
+        let error = form.querySelector(".auth-error");
+        if (!error) {
+            error = document.createElement("p");
+            error.className = "auth-error";
+            error.setAttribute("role", "alert");
+            form.querySelector("form").prepend(error);
+        }
+        error.textContent = message;
+    }
+    function setBusy(form, busy) {
+        const button = form.querySelector("button[type='submit']");
+        button.disabled = busy;
+        button.dataset.label ||= button.textContent;
+        button.textContent = busy ? "Please wait…" : button.dataset.label;
+    }
+    document.getElementById("showSignup").addEventListener("click", () => {
+        signinForm.classList.remove("active"); signupForm.classList.add("active");
     });
-
-
-    showSignin.addEventListener("click", () => {
-
-        signupForm.classList.remove("active");
-        signinForm.classList.add("active");
-
+    document.getElementById("showSignin").addEventListener("click", () => {
+        signupForm.classList.remove("active"); signinForm.classList.add("active");
     });
-
-
-    /* ================================
-       PASSWORD VISIBILITY
-    ================================= */
-
-    const passwordToggles =
-        document.querySelectorAll(".password-toggle");
-
-    passwordToggles.forEach(toggle => {
-
-        toggle.addEventListener("click", () => {
-
-            const targetId = toggle.dataset.target;
-            const passwordInput =
-                document.getElementById(targetId);
-
-            if (passwordInput.type === "password") {
-
-                passwordInput.type = "text";
-                toggle.textContent = "Hide";
-
-            } else {
-
-                passwordInput.type = "password";
-                toggle.textContent = "Show";
-
-            }
-
-        });
-
+    document.querySelectorAll(".password-toggle").forEach((toggle) => toggle.addEventListener("click", () => {
+        const input = document.getElementById(toggle.dataset.target);
+        input.type = input.type === "password" ? "text" : "password";
+        toggle.textContent = input.type === "password" ? "Show" : "Hide";
+    }));
+    signInFormElement.addEventListener("submit", async (event) => {
+        event.preventDefault(); setBusy(signinForm, true);
+        try {
+            const session = await DealMindAPI.request("/api/auth/login", { method: "POST", body: JSON.stringify({
+                email: document.getElementById("signinEmail").value.trim(),
+                password: document.getElementById("signinPassword").value,
+            }) });
+            DealMindAPI.saveSession(session);
+            window.location.assign("dashboard.html");
+        } catch (error) { showError(signinForm, error.message); }
+        finally { setBusy(signinForm, false); }
     });
-
-
-    /* ================================
-       SIGN IN
-    ================================= */
-
-    signInFormElement.addEventListener("submit", (event) => {
-
+    signUpFormElement.addEventListener("submit", async (event) => {
         event.preventDefault();
-
-        const email =
-            document.getElementById("signinEmail").value.trim();
-
-        const password =
-            document.getElementById("signinPassword").value.trim();
-
-        if (!email || !password) {
-            alert("Please fill in all fields.");
-            return;
-        }
-
-        localStorage.setItem("dealMindAuthenticated", "true");
-        localStorage.setItem("dealMindUser", email);
-        window.location.href = "dashboard.html";
-
+        if (!document.getElementById("terms").checked) { showError(signupForm, "Please accept the Terms of Service."); return; }
+        setBusy(signupForm, true);
+        try {
+            const session = await DealMindAPI.request("/api/auth/signup", { method: "POST", body: JSON.stringify({
+                name: document.getElementById("signupName").value.trim(),
+                email: document.getElementById("signupEmail").value.trim(),
+                password: document.getElementById("signupPassword").value,
+            }) });
+            DealMindAPI.saveSession(session);
+            window.location.assign("dashboard.html");
+        } catch (error) { showError(signupForm, error.message); }
+        finally { setBusy(signupForm, false); }
     });
-
-
-    /* ================================
-       SIGN UP
-    ================================= */
-
-    signUpFormElement.addEventListener("submit", (event) => {
-
-        event.preventDefault();
-
-        const name =
-            document.getElementById("signupName").value.trim();
-
-        const email =
-            document.getElementById("signupEmail").value.trim();
-
-        const password =
-            document.getElementById("signupPassword").value.trim();
-
-        const terms =
-            document.getElementById("terms").checked;
-
-
-        if (!name || !email || !password) {
-
-            alert("Please fill in all fields.");
-            return;
-
-        }
-
-
-        if (password.length < 8) {
-
-            alert("Password must contain at least 8 characters.");
-            return;
-
-        }
-
-
-        if (!terms) {
-
-            alert("Please accept the Terms of Service.");
-            return;
-
-        }
-
-
-        localStorage.setItem("dealMindAuthenticated", "true");
-        localStorage.setItem("dealMindUser", email);
-        window.location.href = "dashboard.html";
-
+    ["googleSignIn", "googleSignUp"].forEach((id) => document.getElementById(id).addEventListener("click", () => {
+        showError(id === "googleSignIn" ? signinForm : signupForm, "Google sign-in is not available yet.");
+    }));
+    document.getElementById("forgotPassword").addEventListener("click", (event) => {
+        event.preventDefault(); showError(signinForm, "Password reset is not available yet.");
     });
-
-
-    /* ================================
-       GOOGLE BUTTONS
-    ================================= */
-
-    googleSignIn.addEventListener("click", () => {
-
-        alert(
-            "Google authentication will be connected when the backend is added."
-        );
-
-    });
-
-
-    googleSignUp.addEventListener("click", () => {
-
-        alert(
-            "Google authentication will be connected when the backend is added."
-        );
-
-    });
-
-
-    /* ================================
-       FORGOT PASSWORD
-    ================================= */
-
-    forgotPassword.addEventListener("click", (event) => {
-
-        event.preventDefault();
-
-        const email =
-            document.getElementById("signinEmail").value.trim();
-
-        if (!email) {
-
-            alert(
-                "Enter your email address first to reset your password."
-            );
-
-            document.getElementById("signinEmail").focus();
-
-            return;
-
-        }
-
-        alert(
-            `Password reset instructions would be sent to ${email}.`
-        );
-
-    });
-
-
 });

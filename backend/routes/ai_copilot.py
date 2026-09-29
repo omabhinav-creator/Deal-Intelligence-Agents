@@ -1,17 +1,23 @@
-import os
+"""MongoDB-backed copilot endpoints that use the backend Groq credential."""
+
 from typing import Annotated
 
 from bson import ObjectId
-from dotenv import load_dotenv
 from fastapi import APIRouter, Depends, HTTPException, status
 from groq import AsyncGroq
 from motor.motor_asyncio import AsyncIOMotorDatabase
 
+from Hindsight.config import get_settings
+
+from ..auth import get_current_user
 from ..database import get_database
 
-load_dotenv()
 
-router = APIRouter(prefix="/api/deals/{deal_id}", tags=["AI copilot"])
+router = APIRouter(
+    prefix="/api/deals/{deal_id}",
+    tags=["AI copilot"],
+    dependencies=[Depends(get_current_user)],
+)
 DatabaseDependency = Annotated[AsyncIOMotorDatabase, Depends(get_database)]
 
 
@@ -20,6 +26,7 @@ async def generate_deal_brief(
     deal_id: str,
     db: DatabaseDependency,
 ) -> dict[str, str]:
+    """Generate the original MongoDB interaction-timeline brief."""
     if not ObjectId.is_valid(deal_id):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid deal ID")
 
@@ -36,11 +43,9 @@ async def generate_deal_brief(
         f"{interaction.get('content', '')} "
         f"Key takeaway: {interaction.get('key_takeaway', '')}"
         for interaction in interactions
-    )
-    if not interaction_notes:
-        interaction_notes = "No interaction notes have been recorded."
+    ) or "No interaction notes have been recorded."
 
-    api_key = os.getenv("GROQ_API_KEY")
+    api_key = get_settings().backend_groq_api_key
     if not api_key:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,

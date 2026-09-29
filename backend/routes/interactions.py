@@ -5,11 +5,13 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from motor.motor_asyncio import AsyncIOMotorDatabase
 
 from ..database import get_database
+from ..auth import get_current_user
 from ..schemas import InteractionCreate, InteractionResponse
 
 router = APIRouter(
     prefix="/api/deals/{deal_id}/interactions",
     tags=["interactions"],
+    dependencies=[Depends(get_current_user)],
 )
 DatabaseDependency = Annotated[AsyncIOMotorDatabase, Depends(get_database)]
 
@@ -25,7 +27,6 @@ async def _require_deal(deal_id: str, db: AsyncIOMotorDatabase) -> ObjectId:
     return object_id
 
 
-@router.post("", response_model=InteractionResponse, status_code=status.HTTP_201_CREATED)
 async def create_interaction(
     deal_id: str,
     payload: InteractionCreate,

@@ -2,7 +2,7 @@
    DEALMIND SETTINGS JAVASCRIPT
 ========================================== */
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
 
     const themeToggle =
         document.getElementById("themeToggle");
@@ -29,25 +29,8 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("resetButton");
 
 
-    /* ==========================================
-       AUTH CHECK
-    ========================================== */
-
-    const isAuthenticated =
-        localStorage.getItem("dealMindAuthenticated");
-
-    if (isAuthenticated !== "true") {
-        window.location.href = "auth.html";
-        return;
-    }
-
-
-    /* ==========================================
-       USER INFORMATION
-    ========================================== */
-
-    const storedEmail =
-        localStorage.getItem("dealMindUser");
+    const user = await DealMindAPI.requireAuth();
+    if (!user) return;
 
     const profileEmail =
         document.getElementById("profileEmail");
@@ -59,44 +42,9 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("profileAvatar");
 
 
-    if (storedEmail) {
-
-        profileEmail.textContent =
-            storedEmail;
-
-        /*
-            Generate a simple display name
-            from the email address.
-        */
-
-        const emailName =
-            storedEmail
-                .split("@")[0]
-                .replace(/[._-]/g, " ");
-
-        const formattedName =
-            emailName
-                .split(" ")
-                .filter(Boolean)
-                .map(word =>
-                    word.charAt(0).toUpperCase() +
-                    word.slice(1)
-                )
-                .join(" ");
-
-        if (formattedName) {
-
-            profileName.textContent =
-                formattedName;
-
-            profileAvatar.textContent =
-                formattedName
-                    .charAt(0)
-                    .toUpperCase();
-
-        }
-
-    }
+    profileName.textContent = user.name;
+    profileEmail.textContent = user.email;
+    profileAvatar.textContent = user.name.charAt(0).toUpperCase();
 
 
     /* ==========================================
@@ -243,58 +191,9 @@ document.addEventListener("DOMContentLoaded", () => {
        EDIT PROFILE
     ========================================== */
 
-    editProfileButton.addEventListener(
-        "click",
-        () => {
-
-            const newName =
-                prompt(
-                    "Enter your name:",
-                    profileName.textContent
-                );
-
-            if (!newName || !newName.trim()) {
-                return;
-            }
-
-            const cleanName =
-                newName.trim();
-
-            profileName.textContent =
-                cleanName;
-
-            profileAvatar.textContent =
-                cleanName
-                    .charAt(0)
-                    .toUpperCase();
-
-            localStorage.setItem(
-                "dealMindName",
-                cleanName
-            );
-
-        }
-    );
-
-
-    /* ==========================================
-       LOAD CUSTOM NAME
-    ========================================== */
-
-    const savedName =
-        localStorage.getItem("dealMindName");
-
-    if (savedName) {
-
-        profileName.textContent =
-            savedName;
-
-        profileAvatar.textContent =
-            savedName
-                .charAt(0)
-                .toUpperCase();
-
-    }
+    editProfileButton.addEventListener("click", () => {
+        window.location.assign("profile.html");
+    });
 
 
     /* ==========================================
@@ -317,30 +216,7 @@ document.addEventListener("DOMContentLoaded", () => {
        LOGOUT
     ========================================== */
 
-    function logout() {
-
-        localStorage.removeItem(
-            "dealMindAuthenticated"
-        );
-
-        localStorage.removeItem(
-            "dealMindUser"
-        );
-
-        window.location.href =
-            "auth.html";
-
-    }
-
-
-    logoutButton.addEventListener(
-        "click",
-        logout
-    );
-
-    signOutButton.addEventListener(
-        "click",
-        logout
-    );
+    logoutButton.addEventListener("click", DealMindAPI.logout);
+    signOutButton.addEventListener("click", DealMindAPI.logout);
 
 });

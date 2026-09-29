@@ -199,3 +199,94 @@ body.dark :is(.secondary-button, .filter-btn, .filter-button, .prompt-btn, .chan
     border-color: var(--color-5);
     color: var(--color-5);
 }
+
+.api-state {
+    grid-column: 1 / -1;
+    margin: 12px 0;
+    padding: 12px 14px;
+    border-left: 3px solid var(--primary, #256b57);
+    background: var(--color-2, #f3f5f3);
+    color: var(--color-4, #344054);
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.api-state.error {
+    border-color: #b42318;
+    color: #8a1c13;
+}
+
+.api-state.loading {
+    border-color: #6177a8;
+}
+
+.api-state:not(pre) {
+    font: inherit;
+}
+
+.deal-actions,
+.copilot-interaction-form {
+    display: grid;
+    gap: 10px;
+    margin-top: 18px;
+}
+
+.deal-actions textarea,
+.deal-actions select,
+.copilot-interaction-form textarea {
+    width: 100%;
+    min-height: 42px;
+    padding: 10px;
+    border: 1px solid var(--accent, #ccd5d0);
+    border-radius: 4px;
+    color: inherit;
+    font: inherit;
+}
+
+.deal-actions textarea,
+.copilot-interaction-form textarea {
+    min-height: 96px;
+    resize: vertical;
+}
+
+.deal-actions .api-state,
+.copilot-interaction-form .api-state {
+    font-size: 0.9rem;
+}
+
+.message-content pre,
+.autopsy-card pre {
+    max-width: 100%;
+    margin: 8px 0 0;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    font: inherit;
+}
+
+.timeline-item[hidden],
+.deal-row[hidden] {
+    display: none !important;
+}
+
+.deal-create-form {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    align-items: start;
+    gap: 8px;
+    width: 100%;
+}
+
+.deal-create-form[hidden] {
+    display: none;
+}
+
+.deal-create-form input,
+.deal-create-form select {
+    min-width: 0;
+    min-height: 40px;
+    padding: 8px 10px;
+    border: 1px solid var(--accent, #ccd5d0);
+    border-radius: 4px;
+    color: inherit;
+    font: inherit;
+}
